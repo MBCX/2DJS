@@ -1,17 +1,16 @@
 import Engine from "../Engine.js";
-import { randomRGBColor } from "../shared/shared_functions.js";
 import { CANVAS_GAME_ID } from "../shared/shared_variables.js";
 
-export class Entities extends Engine
-{
-    constructor(entity_name, width, height, isControllable)
-    {
+export class Entities extends Engine {
+    constructor(entity_name, width, height, controls = []) {
         super();
         this.canvas_container = document.createElement("canvas");
         this.canvas_container.id = `${CANVAS_GAME_ID}-${entity_name}`;
-        
+
         // Removes blur.
-        this.canvas_container.getContext("2d").webkitImageSmoothingEnabled = false;
+        this.canvas_container.getContext(
+            "2d"
+        ).webkitImageSmoothingEnabled = false;
         this.canvas_container.getContext("2d").imageSmoothingEnabled = false;
         this.canvas_container.style.position = "absolute";
 
@@ -22,9 +21,21 @@ export class Entities extends Engine
         this.height = height;
         this.x = 0;
         this.y = 0;
-        this.key_current = null;
-        this.is_controllable = isControllable;
-        
+
+        console.assert(
+            Array.isArray(controls),
+            "Controls parameter for Entities must be an array."
+        );
+
+        /**
+         * Holds the controls available for an entity. And
+         * another property to tell if it's pressed.
+         */
+        this.control_map = {
+            controls: controls,
+            is_pressed: new Array(controls.length),
+        };
+
         /** @private */
         this.instance = null;
 
@@ -36,22 +47,26 @@ export class Entities extends Engine
      * Getter that returns the game canvas element.
      * @public
      */
-    canvasEl()
-    {
+    canvasEl() {
         return this.canvas_container;
     }
 
     /**
      * @private
      */
-    init()
-    {
+    init() {
+        // Sets ID using the Date.now to make sure all entities
+        // have a unique ID.
         this.entities.set(this.name, Math.round(Date.now() / 1000));
-
-        if (this.is_controllable)
-        {
-            document.addEventListener("keydown", this.setKeyPressed.bind(this));
-            document.addEventListener("keyup", this.removeKeyPressed.bind(this));
+        if (this.control_map.controls.length > 0) {
+            document.body.addEventListener(
+                "keydown",
+                this.setKeyPressed.bind(this)
+            );
+            document.body.addEventListener(
+                "keyup",
+                this.removeKeyPressed.bind(this)
+            );
         }
         document.body.append(this.canvas_container);
     }
@@ -59,15 +74,13 @@ export class Entities extends Engine
     /**
      * @override
      */
-    gameLoop()
-    {
+    gameLoop() {
         this.entityStep();
         this.drawShouldUpdate();
         // this.canvas_container.style.width = this.w_width + "px";
         // this.canvas_container.style.height = this.w_height + "px";
     }
 
-    // --- Entity methods. ---
 
     /** @public */
     entityInit() {}
@@ -76,19 +89,16 @@ export class Entities extends Engine
     entityStep() {}
 
     /** @public */
-    entityDestroy() {}
-
-    // Getters.
+    entityDestroy() { }
+    
 
     /** @public */
-    getAllEntities()
-    {
+    getAllEntities() {
         return this.entities;
     }
 
     /** @public */
-    getEntityId(name)
-    {
+    getEntityId(name) {
         return this.entities.get(name);
     }
 
@@ -98,11 +108,12 @@ export class Entities extends Engine
      * @param {Number} width Drawing width.
      * @param {Number} height Drawing height.
      * @param {String} colour Colour of the drawing.
+     * @public
      */
-    draw(x, y, colour)
-    {
+    draw(x, y, colour) {
         let canvas = this.canvas_container.getContext("2d");
-        canvas.fillStyle = ("string" == typeof colour) ? colour : randomRGBColor();
+        canvas.fillStyle =
+            "string" == typeof colour && "" != colour ? colour : "";
 
         canvas.beginPath();
         canvas.fillRect(x, y, this.width, this.height);
@@ -116,40 +127,82 @@ export class Entities extends Engine
 
     /**
      * Mehtod that determines if it needs to render again
-     * a specific frame of the canvas.
+     * a specific frame of the entity canvas.
      * @private
      */
-    drawShouldUpdate()
-    {
+    drawShouldUpdate() {
         let canvas = this.canvas_container.getContext("2d");
         canvas.clearRect(0, 0, this.w_width, this.w_height);
         canvas.fillRect(this.x, this.y, this.width, this.width);
     }
 
     /**
-     * Internally sets the key pressed to a variable, then returns it.
-     * @param {!KeyboardEvent} e Current key pressed.
-     * @public
+     * @param {String} key 
+     * @private
      */
-    setKeyPressed(e)
-    {
-        this.key_current = e.key; 
-        return this.key_current;
+    getKeyIndex(key) {
+        let index = 0;
+        for (; this.control_map.controls.length > index; ++index) {
+            if (key === this.control_map.controls[index]) {
+                return index;
+            }
+        }
+
+        // The control key was not found (or it doesn't exists.)
+        return false;
     }
 
     /**
-     * Internally removes the key pressed to a variable, then returns it.
-     * @param {!KeyboardEvent} e Current key released.
-     * @public
+     * Internally sets the key pressed to a variable.
+     * @param {!KeyboardEvent} e Current key pressed.
+     * @private
      */
-    removeKeyPressed(e)
-    {
-        this.key_current = null;
+    setKeyPressed(e) {
+        let index = this.getKeyIndex(e.key);
+        if (this.control_map.controls[index]) {
+            this.control_map.is_pressed[index] = true;
+        }
     }
 
-    static getInstance()
-    {
-        return this.instance ?? (this.instance = new this(this.name, this.width, this.height, this.is_controllable));
+    /**
+     * Internally removes the key pressed to a variable.
+     * @param {!KeyboardEvent} e Current key released.
+     * @private
+     */
+    removeKeyPressed(e) {
+        let index = this.getKeyIndex(e.key);
+        if (this.control_map.controls[index]) {
+            this.control_map.is_pressed[index] = false;
+        }
+    }
+
+    /**
+     * Tells if a particular key set for the entity has been pressed.
+     * @param {String} key The key string to check for. It must exist in the array
+     * @returns {Boolean} True if pressed, false otherwise.
+     * @public
+     */
+    isKeyPressed(key) {
+        console.assert(this.getKeyIndex(key) !== false, `The requested key: ${key} does not exits in the controls map for entity ${this.name}`);
+        return this.control_map.is_pressed[this.getKeyIndex(key)];
+    }
+
+    /**
+     * A static method that always returns one instance of an
+     * entity.
+     * @public
+     * @returns The same class instance of a specific entity.
+     */
+    static getInstance() {
+        return (
+            this.instance ??
+            (this.instance = new this(
+                this.name,
+                this.width,
+                this.height,
+                this.is_controllable
+            ))
+        );
     }
 }
 

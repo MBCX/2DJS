@@ -1,5 +1,4 @@
 import Entities from "../../../../Engine/Entities/Entities.js";
-import Player from "../player/player.js"
 
 export class Enemy extends Entities
 {

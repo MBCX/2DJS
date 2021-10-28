@@ -7,12 +7,20 @@ import EngineMath from "./Math/EngineMath.js";
 export class Engine {
     /**
      * @param {Number*} FPS Optional parameter to set the game's speed. Lower is faster but less performant, while bigger is slower but more performant.
-     * @param {Boolean} enableDarkMode Optional parameter to let the game automatically render a dark mode theme (if dark mode is enabled.)
+     * @param {Boolean*} enableDarkMode Optional parameter to let the game automatically render a dark mode theme (if dark mode is enabled.)
      */
     constructor(enableDarkMode = false, FPS = 60) {
         this.fps = FPS;
-        this.w_width = screen.width;
-        this.w_height = screen.height;
+        this.browser_type = {
+            Chrome: "Chrome",
+            Firefox: "Firefox",
+            Safari: "Safari",
+            Opera: "Opera",
+            Seamonkey: "Seamonkey",
+            IE: "Internet Explorer"
+        };
+        this.w_width = this.getScreenWidthHeight()[0];
+        this.w_height = this.getScreenWidthHeight()[1];
 
         // Style document and canvas.
         document.body.style.margin = 0;
@@ -51,11 +59,46 @@ export class Engine {
     }
 
     /**
+     * @public
+     * @returns The name of the browser the user is currently using.
+     */
+    getBrowserType()
+    {
+        // TODO: There must be a better way to detect different
+        // browsers without having to use user-agent.
+        // Also, this else-if chain is disgusting.
+        if (navigator.userAgent.includes("Chrome") || navigator.userAgent.includes("Chromium")) {
+            return this.browser_type.Chrome;
+        } else if (navigator.userAgent.includes("Firefox")) {
+            return this.browser_type.Firefox;
+        } else if (navigator.userAgent.includes("Trident/7.0") || navigator.userAgent.includes("MSIE")) {
+            return this.browser_type.IE;
+        } else if (navigator.userAgent.includes("OPR") || navigator.userAgent.includes("Opera")) {
+            return this.browser_type.Opera;
+        } else if (navigator.userAgent.includes("Safari")) {
+            return this.browser_type.Safari;
+        } else if (navigator.userAgent.includes("Seamonkey")) {
+            return this.browser_type.Seamonkey;
+        }
+    }
+
+    /**
+     * @public
+     */
+    getScreenWidthHeight()
+    {
+        if (this.getBrowserType() === this.browser_type.Chrome) {
+            return [window.innerWidth, window.innerHeight];
+        }
+        return [screen.width, screen.height];
+    }
+
+    /**
      * @private
      */
     updateResolution() {
-        this.w_width = screen.width;
-        this.w_height = screen.height;
+        this.w_width = this.getScreenWidthHeight()[0];
+        this.w_height = this.getScreenWidthHeight()[1];
 
         // Style document and canvas.
         document.documentElement.style.width = this.w_width + "px";

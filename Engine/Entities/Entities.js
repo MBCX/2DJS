@@ -10,8 +10,11 @@ export class Entities extends Engine {
         // Removes blur.
         this.canvas_container.getContext(
             "2d"
-        ).webkitImageSmoothingEnabled = false;
-        this.canvas_container.getContext("2d").imageSmoothingEnabled = false;
+        ).webkitImageSmoothingEnabled = true;
+        this.canvas_container.getContext(
+            "2d"
+        ).mozImageSmoothingEnabled = true;
+        this.canvas_container.getContext("2d").imageSmoothingEnabled = true;
         this.canvas_container.style.position = "absolute";
 
         /** @private */
@@ -21,6 +24,7 @@ export class Entities extends Engine {
         this.height = height;
         this.x = 0;
         this.y = 0;
+        this.string = '';
 
         console.assert(
             Array.isArray(controls),
@@ -77,10 +81,9 @@ export class Entities extends Engine {
     gameLoop() {
         this.entityStep();
         this.drawShouldUpdate();
-        // this.canvas_container.style.width = this.w_width + "px";
-        // this.canvas_container.style.height = this.w_height + "px";
+        this.canvas_container.style.width = this.w_width + "px";
+        this.canvas_container.style.height = this.w_height + "px";
     }
-
 
     /** @public */
     entityInit() {}
@@ -89,9 +92,8 @@ export class Entities extends Engine {
     entityStep() {}
 
     /** @public */
-    entityDestroy() { }
+    entityDestroy() {}
     
-
     /** @public */
     getAllEntities() {
         return this.entities;
@@ -112,17 +114,20 @@ export class Entities extends Engine {
      */
     draw(x, y, colour) {
         let canvas = this.canvas_container.getContext("2d");
-        canvas.fillStyle =
-            "string" == typeof colour && "" != colour ? colour : "";
-
-        canvas.beginPath();
+        canvas.fillStyle = colour;
         canvas.fillRect(x, y, this.width, this.height);
-        canvas.fill();
-        canvas.stroke();
-        canvas.closePath();
 
         this.x = x;
         this.y = y;
+    }
+
+    drawText(x, y, text, styles = { font: "30px Arial", maxWidth: 300 })
+    {
+        let canvas = this.canvas_container.getContext("2d");
+        this.string = text;
+        canvas.mozTextStyle = styles.font;
+        canvas.font = styles.font;
+        canvas.fillText(this.string, x, y);
     }
 
     /**
@@ -132,8 +137,12 @@ export class Entities extends Engine {
      */
     drawShouldUpdate() {
         let canvas = this.canvas_container.getContext("2d");
-        canvas.clearRect(0, 0, this.w_width, this.w_height);
-        canvas.fillRect(this.x, this.y, this.width, this.width);
+        if (this.string == '') {
+            canvas.clearRect(0, 0, this.w_width, this.w_height);
+            canvas.fillRect(this.x, this.y, this.width, this.width);
+        } else {
+            canvas.fillText(this.string, this.x, this.y);
+        }
     }
 
     /**

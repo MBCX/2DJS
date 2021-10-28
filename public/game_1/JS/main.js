@@ -1,5 +1,5 @@
 import Engine from "../../../Engine/Engine.js";
-import Enemy from "./enemy/enemy.js";
+import HUD from "./hud/hud.js";
 import Player from "./player/player.js";
 
 // Initialise.
@@ -13,7 +13,7 @@ document.addEventListener(
             "ArrowUp",
             "ArrowDown",
         ]);
-        new Enemy("Enemy", 64, 64);
+        new HUD("GameHud", 64, 64);
     },
     { once: true }
 );

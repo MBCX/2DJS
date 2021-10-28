@@ -11,11 +11,8 @@ export class Entities extends Engine {
         this.canvas_container.getContext(
             "2d"
         ).webkitImageSmoothingEnabled = true;
-        this.canvas_container.getContext(
-            "2d"
-        ).mozImageSmoothingEnabled = true;
+        this.canvas_container.getContext("2d").mozImageSmoothingEnabled = true;
         this.canvas_container.getContext("2d").imageSmoothingEnabled = true;
-        this.canvas_container.style.position = "absolute";
 
         /** @private */
         this.entities = new Map();
@@ -24,7 +21,8 @@ export class Entities extends Engine {
         this.height = height;
         this.x = 0;
         this.y = 0;
-        this.string = '';
+        this.string = "";
+        this.image = "";
 
         console.assert(
             Array.isArray(controls),
@@ -80,9 +78,8 @@ export class Entities extends Engine {
      */
     gameLoop() {
         this.entityStep();
+        this.updateCanvasSize();
         this.drawShouldUpdate();
-        this.canvas_container.style.width = this.w_width + "px";
-        this.canvas_container.style.height = this.w_height + "px";
     }
 
     /** @public */
@@ -93,7 +90,7 @@ export class Entities extends Engine {
 
     /** @public */
     entityDestroy() {}
-    
+
     /** @public */
     getAllEntities() {
         return this.entities;
@@ -105,6 +102,42 @@ export class Entities extends Engine {
     }
 
     /**
+     * Sets correct width and height for a clear
+     * canvas image.
+     * REFERENCE: https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas
+     * @private
+     */
+    updateCanvasSize(customRatio = 0) {
+        const canvas = this.canvasEl();
+
+        const PIXEL_RATIO = () => {
+            const canvas = this.canvasEl().getContext("2d");
+            const bsr =
+                canvas.webkitBackingStorePixelRatio ||
+                canvas.mozBackingStorePixelRatio ||
+                canvas.msBackingStorePixelRatio ||
+                canvas.oBackingStorePixelRatio ||
+                canvas.backingStorePixelRatio ||
+                1;
+            return this.device_dpi / bsr;
+        };
+        let ratio = 0;
+        if (!customRatio)
+        {
+            ratio = PIXEL_RATIO();
+        }
+
+        if (this.hasCanvasText()) {
+            canvas.width = this.w_width * ratio;
+            canvas.height = this.w_height * ratio;
+            canvas.style.position = "absolute";
+            canvas.style.width = this.w_width + "px";
+            canvas.style.height = this.w_height + "px";
+            canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+        }
+    }
+
+    /**
      * @param {Number} x X position of drawing.
      * @param {Number} y Y position for drawing.
      * @param {Number} width Drawing width.
@@ -113,7 +146,7 @@ export class Entities extends Engine {
      * @public
      */
     draw(x, y, colour) {
-        let canvas = this.canvas_container.getContext("2d");
+        const canvas = this.canvasEl().getContext("2d");
         canvas.fillStyle = colour;
         canvas.fillRect(x, y, this.width, this.height);
 
@@ -121,32 +154,50 @@ export class Entities extends Engine {
         this.y = y;
     }
 
-    drawText(x, y, text, styles = { font: "30px Arial", maxWidth: 300 })
-    {
-        let canvas = this.canvas_container.getContext("2d");
+    /**
+     * @param {Number} x
+     * @param {Number} y
+     * @param {String} text
+     * @param {Object*} styles
+     * @public
+     */
+    drawText(x, y, text, styles = { font: "30px Arial", fill: "black", align: "left" }) {
+        const canvas = this.canvasEl().getContext("2d");
         this.string = text;
         canvas.mozTextStyle = styles.font;
         canvas.font = styles.font;
+        canvas.fillStyle = styles.fill;
+        canvas.textAlign = styles.align;
         canvas.fillText(this.string, x, y);
     }
 
     /**
+     *
+     * @param {Number} x
+     * @param {Number} y
+     * @param {String} image
+     * @public
+     */
+    drawImage(x, y, image) {}
+
+    /**
      * Mehtod that determines if it needs to render again
-     * a specific frame of the entity canvas.
+     * a specific frame of an entity canvas.
      * @private
      */
     drawShouldUpdate() {
-        let canvas = this.canvas_container.getContext("2d");
-        if (this.string == '') {
+        const canvas = this.canvasEl().getContext("2d");
+        if (this.hasCanvasText()) {
             canvas.clearRect(0, 0, this.w_width, this.w_height);
             canvas.fillRect(this.x, this.y, this.width, this.width);
         } else {
+            // canvas.measureText(0, 0, this.w_width, this.w_height);
             canvas.fillText(this.string, this.x, this.y);
         }
     }
 
     /**
-     * @param {String} key 
+     * @param {String} key
      * @private
      */
     getKeyIndex(key) {
@@ -192,8 +243,19 @@ export class Entities extends Engine {
      * @public
      */
     isKeyPressed(key) {
-        console.assert(this.getKeyIndex(key) !== false, `The requested key: ${key} does not exits in the controls map for entity ${this.name}`);
+        console.assert(
+            this.getKeyIndex(key) !== false,
+            `The requested key: ${key} does not exits in the controls map for entity ${this.name}`
+        );
         return this.control_map.is_pressed[this.getKeyIndex(key)];
+    }
+
+    /**
+     * @private
+     */
+    hasCanvasText()
+    {
+        return this.string === '';
     }
 
     /**

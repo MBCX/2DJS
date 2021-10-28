@@ -13,7 +13,7 @@ document.addEventListener(
             "ArrowUp",
             "ArrowDown",
         ]);
-        new HUD("GameHud", 64, 64);
+        new HUD("GameHud", window.innerWidth, window.innerHeight);
     },
     { once: true }
 );

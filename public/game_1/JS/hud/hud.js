@@ -10,7 +10,12 @@ export class HUD extends Entities {
      */
     entityInit()
     {
-        this.drawText(32, 32, "Hello!!", { font: "30px Segoe UI" });
+        this.drawText(
+            this.canvas_container.width / 2,
+            this.canvas_container.height / 2,
+            "Hello!!",
+            { font: "30px Segoe UI", align: "center" }
+        );
     }
 }
 export default HUD;

@@ -21,6 +21,7 @@ export class Engine {
         };
         this.w_width = this.getScreenWidthHeight()[0];
         this.w_height = this.getScreenWidthHeight()[1];
+        this.device_dpi = window.devicePixelRatio || 1;
 
         // Style document and canvas.
         document.body.style.margin = 0;
@@ -101,8 +102,6 @@ export class Engine {
         this.w_height = this.getScreenWidthHeight()[1];
 
         // Style document and canvas.
-        document.documentElement.style.width = this.w_width + "px";
-        document.documentElement.style.height = this.w_height + "px";
         document.body.style.width = this.w_width + "px";
         document.body.style.height = this.w_height + "px";
     }

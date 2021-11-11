@@ -30,8 +30,9 @@ export class Entities extends Engine {
         );
 
         /**
-         * Holds the controls available for an entity. And
+         * Holds the controls available for an entity, and
          * another property to tell if it's pressed.
+         * Useful for multiplayer games.
          */
         this.control_map = {
             controls: controls,
@@ -59,7 +60,7 @@ export class Entities extends Engine {
     init() {
         // Sets ID using the Date.now to make sure all entities
         // have a unique ID.
-        this.entities.set(this.name, Math.round(Date.now() / 1000));
+        this.entities.set(this.name, Date.now());
         if (this.control_map.controls.length > 0) {
             document.body.addEventListener(
                 "keydown",
@@ -122,8 +123,7 @@ export class Entities extends Engine {
             return this.device_dpi / bsr;
         };
         let ratio = 0;
-        if (!customRatio)
-        {
+        if (!customRatio) {
             ratio = PIXEL_RATIO();
         }
 
@@ -133,6 +133,10 @@ export class Entities extends Engine {
             canvas.style.position = "absolute";
             canvas.style.width = this.w_width + "px";
             canvas.style.height = this.w_height + "px";
+            canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+        } else {
+            canvas.width = this.w_width * ratio;
+            canvas.height = this.w_height * ratio;
             canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
         }
     }
@@ -161,13 +165,24 @@ export class Entities extends Engine {
      * @param {Object*} styles
      * @public
      */
-    drawText(x, y, text, styles = { font: "30px Arial", fill: "black", align: "left" }) {
+    drawText(
+        x,
+        y,
+        text,
+        styles = {
+            font: "30px Arial",
+            fill: "black",
+            align: "left",
+            baseline: "hanging",
+        }
+    ) {
         const canvas = this.canvasEl().getContext("2d");
         this.string = text;
         canvas.mozTextStyle = styles.font;
         canvas.font = styles.font;
         canvas.fillStyle = styles.fill;
         canvas.textAlign = styles.align;
+        canvas.textBaseline = styles.baseline;
         canvas.fillText(this.string, x, y);
     }
 
@@ -191,7 +206,7 @@ export class Entities extends Engine {
             canvas.clearRect(0, 0, this.w_width, this.w_height);
             canvas.fillRect(this.x, this.y, this.width, this.width);
         } else {
-            // canvas.measureText(0, 0, this.w_width, this.w_height);
+            canvas.measureText(0, 0, this.w_width, this.w_height);
             canvas.fillText(this.string, this.x, this.y);
         }
     }
@@ -213,7 +228,7 @@ export class Entities extends Engine {
     }
 
     /**
-     * Internally sets the key pressed to a variable.
+     * Internally sets the key pressed.
      * @param {!KeyboardEvent} e Current key pressed.
      * @private
      */
@@ -225,7 +240,7 @@ export class Entities extends Engine {
     }
 
     /**
-     * Internally removes the key pressed to a variable.
+     * Internally removes the key pressed.
      * @param {!KeyboardEvent} e Current key released.
      * @private
      */
@@ -253,9 +268,8 @@ export class Entities extends Engine {
     /**
      * @private
      */
-    hasCanvasText()
-    {
-        return this.string === '';
+    hasCanvasText() {
+        return this.string === "";
     }
 
     /**
@@ -266,12 +280,12 @@ export class Entities extends Engine {
      */
     static getInstance() {
         return (
-            this.instance ??
-            (this.instance = new this(
-                this.name,
-                this.width,
-                this.height,
-                this.is_controllable
+            this.prototype.instance ??
+            (this.prototype.instance = new this(
+                this.prototype.name,
+                this.prototype.width,
+                this.prototype.height,
+                this.prototype.control_map.controls
             ))
         );
     }

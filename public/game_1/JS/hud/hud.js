@@ -14,7 +14,7 @@ export class HUD extends Entities {
             this.canvas_container.width / 2,
             this.canvas_container.height / 2,
             "Hello!!",
-            { font: "30px Segoe UI", align: "center" }
+            { font: "30px Segoe UI" }
         );
     }
 }

@@ -88,6 +88,8 @@ export class Engine {
      */
     getScreenWidthHeight()
     {
+        // Chrome likes to handle screen values differently from
+        // Firefox.
         if (this.getBrowserType() === this.browser_type.Chrome) {
             return [window.innerWidth, window.innerHeight];
         }

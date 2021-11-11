@@ -31,6 +31,9 @@ export class Player extends Entities
      */
     entityStep()
     {
+        const screen_h = this.getScreenWidthHeight()[1];
+        const screen_w = this.getScreenWidthHeight()[0];
+
         // Left-right movement.
         if (this.isKeyPressed("ArrowRight")) {
             this.speed_ease.x += this.SPEED_EASE_INC;
@@ -76,9 +79,13 @@ export class Player extends Entities
             this.MAX_SPEED
         );
 
+        // Make the player wrap in the room in the y axis.
         // Apply our custom x and y variables to our x and y.
         this.x += this.speed_ease.x;
         this.y += this.speed_ease.y;
+
+        this.x = this.engine_math.wrap(this.x, -40, screen_w);
+        this.y = this.engine_math.wrap(this.y, -40, screen_h);
     }
 }
 export default Player;

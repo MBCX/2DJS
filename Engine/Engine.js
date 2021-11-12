@@ -6,13 +6,42 @@ export class Engine {
      */
     constructor(FPS = 60) {
         this.fps = FPS;
+
+        /**
+         * REFERENCE: https://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
+         * @typedef browser_type
+         * @property {Boolean} Chrome
+         * @property {Boolean} EdgeChromium
+         * @property {Boolean} Firefox
+         * @property {Boolean} Safari
+         * @property {Boolean} Opera
+         * @property {Boolean} EdgeLegacy
+         * @property {Boolean} IE
+         */
         this.browser_type = {
-            Chrome: "Chrome",
-            Firefox: "Firefox",
-            Safari: "Safari",
-            Opera: "Opera",
-            Seamonkey: "Seamonkey",
-            IE: "Internet Explorer",
+            Chrome:
+                !!window.chrome &&
+                (!!window.chrome.webstore || !!window.chrome.runtime),
+            EdgeChromium:
+                !!window.chrome &&
+                (!!window.chrome.webstore || !!window.chrome.runtime) &&
+                navigator.userAgent.indexOf("Edg") != -1,
+            Firefox: typeof InstallTrigger !== "undefined",
+            Safari:
+                /constructor/i.test(window.HTMLElement) ||
+                (function (p) {
+                    return p.toString() === "[object SafariRemoteNotification]";
+                })(
+                    !window["safari"] ||
+                        (typeof safari !== "undefined" &&
+                            window["safari"].pushNotification)
+                ),
+            Opera:
+                (!!window.opr && !!opr.addons) ||
+                !!window.opera ||
+                navigator.userAgent.indexOf(" OPR/") >= 0,
+            EdgeLegacy: /*@cc_on!@*/ false && !!window.StyleMedia,
+            IE: /*@cc_on!@*/ false || !!document.documentMode,
         };
 
         this.screen_width = this.getScreenWidthHeightArray()[0];
@@ -44,42 +73,13 @@ export class Engine {
         return this.fps;
     }
 
-    /** @public */
-    getBrowserType() {
-        // TODO: There must be a better way to detect different
-        // browsers without having to use user-agent.
-        // Also, this else-if chain is disgusting.
-        if (
-            navigator.userAgent.includes("Chrome") ||
-            navigator.userAgent.includes("Chromium")
-        ) {
-            return this.browser_type.Chrome;
-        } else if (navigator.userAgent.includes("Firefox")) {
-            return this.browser_type.Firefox;
-        } else if (
-            navigator.userAgent.includes("Trident/7.0") ||
-            navigator.userAgent.includes("MSIE")
-        ) {
-            return this.browser_type.IE;
-        } else if (
-            navigator.userAgent.includes("OPR") ||
-            navigator.userAgent.includes("Opera")
-        ) {
-            return this.browser_type.Opera;
-        } else if (navigator.userAgent.includes("Safari")) {
-            return this.browser_type.Safari;
-        } else if (navigator.userAgent.includes("Seamonkey")) {
-            return this.browser_type.Seamonkey;
-        }
-    }
-
     /**
      * Index 0 is width and index 1 is height.
      * @public
      */
     getScreenWidthHeightArray() {
         // Chrome handle screen values differently.
-        if (this.getBrowserType() === this.browser_type.Chrome) {
+        if (this.browser_type.Chrome) {
             return [window.innerWidth, window.innerHeight];
         }
         return [screen.width, screen.height];

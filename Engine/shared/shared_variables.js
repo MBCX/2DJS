@@ -1,1 +1,2 @@
-export const CANVAS_GAME_ID = "game-canvas";
+/** @readonly */
+export const CANVAS_PREFIX_GAME_ID = "game-canvas";

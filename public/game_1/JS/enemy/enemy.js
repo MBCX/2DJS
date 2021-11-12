@@ -2,9 +2,9 @@ import Entities from "../../../../Engine/Entities/Entities.js";
 
 export class Enemy extends Entities
 {
-    constructor(entity_name, width, height, isControllable)
+    constructor(entity_name, width, height)
     {
-        super(entity_name, width, height, isControllable);
+        super(entity_name, width, height);
     }
 
     /**
@@ -12,7 +12,7 @@ export class Enemy extends Entities
      */
     entityInit()
     {
-        this.draw(128, 128);
+        this.drawSquare(128, 128);
     }
 
     /**

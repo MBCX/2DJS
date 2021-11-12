@@ -1,21 +1,25 @@
 import Engine from "../Engine.js";
-import { CANVAS_GAME_ID } from "../shared/shared_variables.js";
+import { CANVAS_PREFIX_GAME_ID } from "../shared/shared_variables.js";
 
 export class Entities extends Engine {
     constructor(entity_name, width, height, controls = []) {
         super();
         this.canvas_container = document.createElement("canvas");
-        this.canvas_container.id = `${CANVAS_GAME_ID}-${entity_name}`;
+        this.canvas_container.id = `${CANVAS_PREFIX_GAME_ID}-${entity_name}`;
 
         // Removes blur.
         this.canvas_container.getContext(
             "2d"
         ).webkitImageSmoothingEnabled = true;
-        this.canvas_container.getContext("2d").mozImageSmoothingEnabled = true;
         this.canvas_container.getContext("2d").imageSmoothingEnabled = true;
 
-        /** @private */
-        this.entities = new Map();
+        /**
+         * @readonly
+         * @private
+         */
+        this.entities_map = new Map();
+
+        /** @readonly */
         this.name = entity_name;
         this.width = width;
         this.height = height;
@@ -23,45 +27,72 @@ export class Entities extends Engine {
         this.y = 0;
         this.string = "";
         this.image = "";
-
         console.assert(
             Array.isArray(controls),
             "Controls parameter for Entities must be an array."
         );
 
         /**
-         * Holds the controls available for an entity, and
-         * another property to tell if it's pressed.
-         * Useful for multiplayer games.
+         * @readonly
+         * @private
          */
-        this.control_map = {
-            controls: controls,
+        this.entity_controls = {
+            control_set: controls,
             is_pressed: new Array(controls.length),
         };
 
         /** @private */
-        this.instance = null;
+        this.entity_instance = null;
 
         this.init.bind(this)();
         this.entityInit();
     }
 
-    /**
-     * Getter that returns the game canvas element.
-     * @public
-     */
-    canvasEl() {
+    /** @public */
+    getCanvasEl() {
         return this.canvas_container;
+    }
+
+    /** @public */
+    getEntityId() {
+        return this.entities_map.get(this.name);
+    }
+
+    /** @public */
+    getAllEntities() {
+        return this.entities_map;
+    }
+
+    /** @public */
+    getEntityName() {
+        return this.name;
+    }
+
+    /**
+     * @param {String} key
+     * @private
+     */
+    findRequestedKeyIndex(key) {
+        let index = 0;
+        for (; this.entity_controls.control_set.length > index; ++index) {
+            if (key === this.entity_controls.control_set[index]) {
+                return index;
+            }
+        }
+
+        // The requested key was not found (or it doesn't exists.)
+        return false;
     }
 
     /**
      * @private
      */
     init() {
-        // Sets ID using the Date.now to make sure all entities
-        // have a unique ID.
-        this.entities.set(this.name, Date.now());
-        if (this.control_map.controls.length > 0) {
+        // Makes sure all entities have unique IDs.
+        this.entities_map.set(this.name, Date.now());
+
+        // Managing controlable entities.
+        if (this.entity_controls.control_set.length > 0) {
             document.body.addEventListener(
                 "keydown",
                 this.setKeyPressed.bind(this)
@@ -80,7 +111,7 @@ export class Entities extends Engine {
     gameLoop() {
         this.entityStep();
         this.updateCanvasSize();
-        this.drawShouldUpdate();
+        this.renderCanvasAgainIfNecessary();
     }
 
     /** @public */
@@ -92,67 +123,33 @@ export class Entities extends Engine {
     /** @public */
     entityDestroy() {}
 
-    /** @public */
-    getAllEntities() {
-        return this.entities;
-    }
-
-    /** @public */
-    getEntityId(name) {
-        return this.entities.get(name);
-    }
-
     /**
-     * Sets correct width and height for a clear
-     * canvas image.
      * REFERENCE: https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas
      * @private
      */
-    updateCanvasSize(customRatio = 0) {
-        const canvas = this.canvasEl();
+    updateCanvasSize() {
+        const canvas = this.getCanvasEl();
+        const ratio = this.getPixelRatio();
 
-        const PIXEL_RATIO = () => {
-            const canvas = this.canvasEl().getContext("2d");
-            const bsr =
-                canvas.webkitBackingStorePixelRatio ||
-                canvas.mozBackingStorePixelRatio ||
-                canvas.msBackingStorePixelRatio ||
-                canvas.oBackingStorePixelRatio ||
-                canvas.backingStorePixelRatio ||
-                1;
-            return this.device_dpi / bsr;
-        };
-        let ratio = 0;
-        if (!customRatio) {
-            ratio = PIXEL_RATIO();
-        }
-
-        if (this.hasCanvasText()) {
-            canvas.width = this.w_width * ratio;
-            canvas.height = this.w_height * ratio;
-            canvas.style.position = "absolute";
-            canvas.style.width = this.w_width + "px";
-            canvas.style.height = this.w_height + "px";
-            canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
-        } else {
-            canvas.width = this.w_width * ratio;
-            canvas.height = this.w_height * ratio;
-            canvas.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
-        }
+        canvas.width = this.screen_width * ratio;
+        canvas.height = this.screen_height * ratio;
+        canvas.style.position = "absolute";
+        canvas.style.width = this.screen_width + "px";
+        canvas.style.height = this.screen_height + "px";
     }
 
     /**
-     * @param {Number} x X position of drawing.
-     * @param {Number} y Y position for drawing.
-     * @param {Number} width Drawing width.
-     * @param {Number} height Drawing height.
-     * @param {String} colour Colour of the drawing.
+     * @param {Number} x
+     * @param {Number} y
+     * @param {String} colour
+     * @param {Number} width How wide you want it to be (in px).
+     * @param {Number} height How tall you want it to be (in px).
      * @public
      */
-    draw(x, y, colour) {
-        const canvas = this.canvasEl().getContext("2d");
+    drawSquare(x, y, colour, width = this.width, height = this.height) {
+        const canvas = this.getCanvasEl().getContext("2d");
         canvas.fillStyle = colour;
-        canvas.fillRect(x, y, this.width, this.height);
+        canvas.fillRect(x, y, width, height);
 
         this.x = x;
         this.y = y;
@@ -170,122 +167,140 @@ export class Entities extends Engine {
         y,
         text,
         styles = {
-            font: "30px Arial",
+            fontName: "Arial",
+            fontSizeBase: 70,
+            align: "center",
             fill: "black",
-            align: "left",
-            baseline: "hanging",
         }
     ) {
-        const canvas = this.canvasEl().getContext("2d");
+        const canvas = this.getCanvasEl().getContext("2d");
+        const font_ratio =
+            this.getCanvasEl().width / (styles.fontSizeBase ?? 50);
+        const font_size = Math.trunc(this.screen_width * font_ratio);
+
         this.string = text;
-        canvas.mozTextStyle = styles.font;
-        canvas.font = styles.font;
-        canvas.fillStyle = styles.fill;
-        canvas.textAlign = styles.align;
-        canvas.textBaseline = styles.baseline;
-        canvas.fillText(this.string, x, y);
+        // canvas.mozTextStyle = styles.font;
+        canvas.font = font_size + "px " + (styles.fontName ?? "Arial");
+        canvas.fillStyle = styles.fill ?? "black";
+        canvas.textAlign = styles.align ?? "center";
+        canvas.fillText(
+            this.string,
+            x,
+            y,
+            canvas.measureText(this.string).width
+        );
+
+        this.x = x;
+        this.y = y;
     }
 
     /**
-     *
      * @param {Number} x
      * @param {Number} y
      * @param {String} image
      * @public
      */
-    drawImage(x, y, image) {}
+    drawImage(x, y, image) {
+        this.y = y;
+        this.x = x;
+    }
 
-    /**
-     * Mehtod that determines if it needs to render again
-     * a specific frame of an entity canvas.
-     * @private
-     */
-    drawShouldUpdate() {
-        const canvas = this.canvasEl().getContext("2d");
-        if (this.hasCanvasText()) {
-            canvas.clearRect(0, 0, this.w_width, this.w_height);
+    /** @private */
+    renderCanvasAgainIfNecessary() {
+        const canvas = this.getCanvasEl().getContext("2d");
+        if (this.isTextEmpty()) {
+            canvas.clearRect(0, 0, this.screen_width, this.screen_height);
             canvas.fillRect(this.x, this.y, this.width, this.width);
         } else {
-            canvas.measureText(0, 0, this.w_width, this.w_height);
-            canvas.fillText(this.string, this.x, this.y);
+            canvas.fillText(
+                this.string,
+                this.x,
+                this.y,
+                canvas.measureText(this.string).width * this.screen_width
+            );
         }
     }
 
     /**
-     * @param {String} key
-     * @private
-     */
-    getKeyIndex(key) {
-        let index = 0;
-        for (; this.control_map.controls.length > index; ++index) {
-            if (key === this.control_map.controls[index]) {
-                return index;
-            }
-        }
-
-        // The control key was not found (or it doesn't exists.)
-        return false;
-    }
-
-    /**
-     * Internally sets the key pressed.
      * @param {!KeyboardEvent} e Current key pressed.
      * @private
      */
     setKeyPressed(e) {
-        let index = this.getKeyIndex(e.key);
-        if (this.control_map.controls[index]) {
-            this.control_map.is_pressed[index] = true;
+        let index = this.findRequestedKeyIndex(e.key);
+        if (this.entity_controls.control_set[index]) {
+            this.entity_controls.is_pressed[index] = true;
+            return;
         }
+
+        // Something has gone wrong, hasn't it?
+        return null;
     }
 
     /**
-     * Internally removes the key pressed.
      * @param {!KeyboardEvent} e Current key released.
      * @private
      */
     removeKeyPressed(e) {
-        let index = this.getKeyIndex(e.key);
-        if (this.control_map.controls[index]) {
-            this.control_map.is_pressed[index] = false;
+        let index = this.findRequestedKeyIndex(e.key);
+        if (this.entity_controls.control_set[index]) {
+            this.entity_controls.is_pressed[index] = false;
+            return;
         }
+
+        // Something has gone wrong, hasn't it?
+        return null;
     }
 
     /**
-     * Tells if a particular key set for the entity has been pressed.
-     * @param {String} key The key string to check for. It must exist in the array
-     * @returns {Boolean} True if pressed, false otherwise.
+     * Returns true if a particular key from a set of controls from an entity has been pressed. 
+     * False otherwise.
+     * @param {String} key The key string to check for.
      * @public
      */
     isKeyPressed(key) {
         console.assert(
-            this.getKeyIndex(key) !== false,
+            this.findRequestedKeyIndex(key) !== false,
             `The requested key: ${key} does not exits in the controls map for entity ${this.name}`
         );
-        return this.control_map.is_pressed[this.getKeyIndex(key)];
+        return this.entity_controls.is_pressed[this.findRequestedKeyIndex(key)];
     }
 
     /**
+     * This method is generally used to control entities or game objects
+     * that have text in their canvas (like HUDs).
      * @private
      */
-    hasCanvasText() {
+    isTextEmpty() {
         return this.string === "";
     }
 
+    /** @private */
+    getPixelRatio() {
+        const canvas = this.getCanvasEl().getContext("2d");
+        const bsr =
+            canvas.webkitBackingStorePixelRatio ||
+            canvas.mozBackingStorePixelRatio ||
+            canvas.msBackingStorePixelRatio ||
+            canvas.oBackingStorePixelRatio ||
+            canvas.backingStorePixelRatio ||
+            1;
+        return this.device_dpi / bsr;
+    }
+
     /**
-     * A static method that always returns one instance of an
-     * entity.
+     * This is best use if you want to get the instance
+     * of a player class (for example) without having to create
+     * a new class instance altogether.
      * @public
-     * @returns The same class instance of a specific entity.
      */
     static getInstance() {
         return (
-            this.prototype.instance ??
-            (this.prototype.instance = new this(
+            this.prototype.entity_instance ??
+            (this.prototype.entity_instance = new this(
                 this.prototype.name,
                 this.prototype.width,
                 this.prototype.height,
-                this.prototype.control_map.controls
+                this.prototype.entity_options.control_set
             ))
         );
     }

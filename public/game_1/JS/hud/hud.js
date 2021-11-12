@@ -1,8 +1,8 @@
 import Entities from "../../../../Engine/Entities/Entities.js";
 
 export class HUD extends Entities {
-    constructor(entity_name, width, height, isControllable) {
-        super(entity_name, width, height, isControllable);
+    constructor(entity_name, width, height) {
+        super(entity_name, width, height);
     }
 
     /**
@@ -11,11 +11,19 @@ export class HUD extends Entities {
     entityInit()
     {
         this.drawText(
-            this.canvas_container.width / 2,
-            this.canvas_container.height / 2,
-            "Hello!!",
-            { font: "30px Segoe UI" }
+            this.screen_width / 2,
+            this.screen_height / 2,
+            "Let's change this text and see if it scales.",
+            { fontName: "Segoe UI", fontSizeBase: 90 }
         );
+    }
+
+    /**
+     * @override
+     */
+    entityStep()
+    {
+        // console.log(this.x);
     }
 }
 export default HUD;

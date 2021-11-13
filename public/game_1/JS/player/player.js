@@ -28,7 +28,6 @@ export class Player extends Entities {
         const screen_h = this.getScreenWidthHeightArray()[1];
         const screen_w = this.getScreenWidthHeightArray()[0];
 
-        // Left-right movement.
         if (this.isKeyPressed("ArrowRight")) {
             this.custom_coords.x += this.CUSTOM_COORDS_INC;
         } else if (this.isKeyPressed("ArrowLeft")) {
@@ -48,7 +47,6 @@ export class Player extends Entities {
             }
         }
 
-        // Up-down movement.
         if (this.isKeyPressed("ArrowUp")) {
             this.custom_coords.y -= this.CUSTOM_COORDS_INC;
         } else if (this.isKeyPressed("ArrowDown")) {

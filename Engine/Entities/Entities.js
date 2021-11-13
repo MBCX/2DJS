@@ -7,7 +7,7 @@ export class Entities extends Engine {
         this.canvas_container = document.createElement("canvas");
         this.canvas_container.id = `${CANVAS_PREFIX_GAME_ID}-${entity_name}`;
 
-        // Removes blur.
+        // Removes canvas blur.
         this.canvas_container.getContext(
             "2d"
         ).webkitImageSmoothingEnabled = true;
@@ -33,6 +33,9 @@ export class Entities extends Engine {
         );
 
         /**
+         * Holds the set of keys for an entity.
+         * @property control_set
+         * @property is_pressed
          * @readonly
          * @private
          */
@@ -110,7 +113,7 @@ export class Entities extends Engine {
      */
     gameLoop() {
         this.entityStep();
-        this.updateCanvasSize();
+        this.setCanvasProperties();
         this.renderCanvasAgainIfNecessary();
     }
 
@@ -127,7 +130,7 @@ export class Entities extends Engine {
      * REFERENCE: https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas
      * @private
      */
-    updateCanvasSize() {
+    setCanvasProperties() {
         const canvas = this.getCanvasEl();
         const ratio = this.getPixelRatio();
 
@@ -167,28 +170,19 @@ export class Entities extends Engine {
         y,
         text,
         styles = {
-            fontName: "Arial",
-            fontSizeBase: 70,
+            fontName: "system-ui",
+            fontSizeBase: 16,
             align: "center",
             fill: "black",
         }
     ) {
         const canvas = this.getCanvasEl().getContext("2d");
-        const font_ratio =
-            this.getCanvasEl().width / (styles.fontSizeBase ?? 50);
-        const font_size = Math.trunc(this.screen_width * font_ratio);
-
         this.string = text;
-        // canvas.mozTextStyle = styles.font;
-        canvas.font = font_size + "px " + (styles.fontName ?? "Arial");
-        canvas.fillStyle = styles.fill ?? "black";
-        canvas.textAlign = styles.align ?? "center";
-        canvas.fillText(
-            this.string,
-            x,
-            y,
-            canvas.measureText(this.string).width
-        );
+        canvas.mozTextStyle = styles.fontSizeBase + "px " + styles.fontName;
+        canvas.font = styles.fontSizeBase + "px " + styles.fontName;
+        canvas.fillStyle = styles.fill;
+        canvas.textAlign = styles.align;
+        canvas.fillText(this.string, x, y);
 
         this.x = x;
         this.y = y;
@@ -212,12 +206,7 @@ export class Entities extends Engine {
             canvas.clearRect(0, 0, this.screen_width, this.screen_height);
             canvas.fillRect(this.x, this.y, this.width, this.width);
         } else {
-            canvas.fillText(
-                this.string,
-                this.x,
-                this.y,
-                canvas.measureText(this.string).width * this.screen_width
-            );
+            this.drawText(this.x, this.y, this.string);
         }
     }
 

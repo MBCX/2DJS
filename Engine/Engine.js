@@ -66,7 +66,9 @@ export class Engine {
     }
 
     /** @public */
-    gameLoop() {}
+    gameLoop() {
+        this.updateResolution();
+    }
 
     /** @public */
     getGameSpeed() {
@@ -74,7 +76,7 @@ export class Engine {
     }
 
     /**
-     * Index 0 is width and index 1 is height.
+     * Returns an array where index 0 is width and index 1 is height.
      * @public
      */
     getScreenWidthHeightArray() {

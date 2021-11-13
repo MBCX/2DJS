@@ -23,5 +23,18 @@ export class EngineMath {
         }
         return _limiter + wrap_min;
     }
+
+    /** @public */
+    degToRad(degree)
+    {
+        return Math.trunc(degree * Math.PI / 180);
+    }
+
+    /** @public */
+    radToDeg(radian)
+    {
+        let result = Math.trunc(radian * 180 / Math.PI);
+        return this.wrap(result, -360, 360);
+    }
 }
 export default EngineMath;

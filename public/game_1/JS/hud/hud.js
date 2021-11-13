@@ -11,10 +11,10 @@ export class HUD extends Entities {
     entityInit()
     {
         this.drawText(
-            this.screen_width / 2,
-            this.screen_height / 2,
-            "Let's change this text and see if it scales.",
-            { fontName: "Segoe UI", fontSizeBase: 90 }
+            64,
+            32,
+            "HP: ",
+            { fontSizeBase: 60, align: "right" }
         );
     }
 
@@ -23,7 +23,7 @@ export class HUD extends Entities {
      */
     entityStep()
     {
-        // console.log(this.x);
+
     }
 }
 export default HUD;

@@ -27,13 +27,13 @@ export class EngineMath {
     /** @public */
     degToRad(degree)
     {
-        return Math.trunc(degree * Math.PI / 180);
+        return Math.round(degree * Math.PI / 180);
     }
 
     /** @public */
     radToDeg(radian)
     {
-        let result = Math.trunc(radian * 180 / Math.PI);
+        let result = Math.round(radian * 180 / Math.PI);
         return this.wrap(result, -360, 360);
     }
 }

@@ -13,7 +13,7 @@ export class HUD extends Entities {
         this.drawText(
             64,
             32,
-            "HP: ",
+            "This text is huuuuuuge",
             { fontSizeBase: 60, align: "right" }
         );
     }

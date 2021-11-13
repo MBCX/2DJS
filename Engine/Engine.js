@@ -1,4 +1,5 @@
 import EngineMath from "./Math/EngineMath.js";
+import EngineUtils from "./utils/EngineUtils.js";
 
 export class Engine {
     /**
@@ -59,6 +60,9 @@ export class Engine {
 
         /** @readonly */
         this.engine_math = new EngineMath();
+
+        /** @readonly */
+        this.engine_utils = new EngineUtils();
 
         document.body.style.margin = 0;
         document.body.style.padding = 0;

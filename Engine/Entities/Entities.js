@@ -25,8 +25,6 @@ export class Entities extends Engine {
         this.height = height;
         this.x = 0;
         this.y = 0;
-        this.string = "";
-        this.image = "";
         console.assert(
             Array.isArray(controls),
             "Controls parameter for Entities must be an array."
@@ -46,6 +44,9 @@ export class Entities extends Engine {
 
         /** @private */
         this.entity_instance = null;
+
+        this.entity_string = "";
+        this.entity_image = "";
 
         this.init.bind(this)();
         this.entityInit();
@@ -177,12 +178,12 @@ export class Entities extends Engine {
         }
     ) {
         const canvas = this.getCanvasEl().getContext("2d");
-        this.string = text;
+        this.entity_string = text;
         canvas.mozTextStyle = styles.fontSizeBase + "px " + styles.fontName;
         canvas.font = styles.fontSizeBase + "px " + styles.fontName;
         canvas.fillStyle = styles.fill;
         canvas.textAlign = styles.align;
-        canvas.fillText(this.string, x, y);
+        canvas.fillText(this.entity_string, x, y);
 
         this.x = x;
         this.y = y;
@@ -203,10 +204,9 @@ export class Entities extends Engine {
     renderCanvasAgainIfNecessary() {
         const canvas = this.getCanvasEl().getContext("2d");
         if (this.isTextEmpty()) {
-            canvas.clearRect(0, 0, this.screen_width, this.screen_height);
             canvas.fillRect(this.x, this.y, this.width, this.width);
         } else {
-            this.drawText(this.x, this.y, this.string);
+            this.drawText(this.x, this.y, this.entity_string);
         }
     }
 
@@ -260,7 +260,7 @@ export class Entities extends Engine {
      * @private
      */
     isTextEmpty() {
-        return this.string === "";
+        return this.entity_string === "";
     }
 
     /** @private */

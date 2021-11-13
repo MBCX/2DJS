@@ -12,7 +12,7 @@ export class Enemy extends Entities
      */
     entityInit()
     {
-        this.drawSquare(128, 128);
+        this.drawSquare(128, 128, this.engine_utils.randomColour());
     }
 
     /**

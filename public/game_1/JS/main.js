@@ -1,6 +1,7 @@
 import Engine from "../../../Engine/Engine.js";
 import HUD from "./hud/hud.js";
 import Player from "./player/player.js";
+import Enemy from "./enemy/enemy.js";
 
 // Initialise.
 document.addEventListener(
@@ -14,6 +15,7 @@ document.addEventListener(
             "ArrowDown",
         ]);
         new HUD("GameHud", window.innerWidth, window.innerHeight);
+        new Enemy("Enemy", 128, 128);
     },
     { once: true }
 );

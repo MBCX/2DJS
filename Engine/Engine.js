@@ -2,12 +2,7 @@ import EngineMath from "./Math/EngineMath.js";
 import EngineUtils from "./utils/EngineUtils.js";
 
 export class Engine {
-    /**
-     * @param {Number*} FPS Lower is faster but less performant, while bigger is slower but more performant.
-     */
-    constructor(FPS = 60) {
-        this.fps = FPS;
-
+    constructor() {
         /**
          * REFERENCE: https://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
          * @typedef browser_type
@@ -20,9 +15,7 @@ export class Engine {
          * @property {Boolean} IE
          */
         this.browser_type = {
-            Chrome:
-                !!window.chrome &&
-                (!!window.chrome.webstore || !!window.chrome.runtime),
+            Chrome: !!window.chrome,
             EdgeChromium:
                 !!window.chrome &&
                 (!!window.chrome.webstore || !!window.chrome.runtime) &&
@@ -48,15 +41,10 @@ export class Engine {
         this.screen_width = this.getScreenWidthHeightArray()[0];
         this.screen_height = this.getScreenWidthHeightArray()[1];
         this.device_dpi = window.devicePixelRatio ?? 1;
-        console.assert(
-            Number.isInteger(FPS),
-            "The game's FPS has be an integer"
-        );
 
-        // Set-up main game loop.
-        // TODO: Update this to be less performance heavy.
-        window.setInterval(this.gameLoop.bind(this), FPS);
-        window.addEventListener("resize", this.updateResolution.bind(this));
+        /** @private */
+        this.last_time_render = NaN;
+        this.delta_time = null;
 
         /** @readonly */
         this.engine_math = new EngineMath();
@@ -67,16 +55,29 @@ export class Engine {
         document.body.style.margin = 0;
         document.body.style.padding = 0;
         document.body.style.overflow = "hidden";
+
+        // Set-up main game loop and game resolution.
+        window.requestAnimationFrame(this.gameLoop.bind(this));
+        window.addEventListener("resize", this.updateResolution.bind(this));
     }
 
     /** @public */
-    gameLoop() {
+    gameLoop(time_render) {
+        // Skip first frame render.
+        if (null == this.last_time_render) {
+            this.last_time_render = time_render;
+            window.requestAnimationFrame(this.gameLoop.bind(this));
+            return;
+        }
         this.updateResolution();
+        this.last_time_render = time_render;
+        this.delta_time = time_render - this.last_time_render;
+        window.requestAnimationFrame(this.gameLoop.bind(this));
     }
 
     /** @public */
-    getGameSpeed() {
-        return this.fps;
+    getDeltaTime() {
+        return this.delta_time;
     }
 
     /**

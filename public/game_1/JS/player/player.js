@@ -9,7 +9,7 @@ export class Player extends Entities {
      * @override
      */
     entityInit() {
-        this.CUSTOM_COORDS_INC = 300 / this.getGameSpeed();
+        this.CUSTOM_COORDS_INC = this.getDeltaTime();
         this.CUSTOM_COORDS_DEC = 1;
         this.MAX_SPEED = 10;
         this.x = 32;
@@ -18,7 +18,13 @@ export class Player extends Entities {
             y: 0,
         };
 
-        this.drawSquare(this.x, 20, "rgb(66, 66, 66)");
+        this.drawSquare(
+            this.x,
+            20,
+            this.width,
+            this.height,
+            "rgb(48, 97, 176)"
+        );
     }
 
     /**

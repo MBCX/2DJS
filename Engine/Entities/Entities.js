@@ -47,6 +47,7 @@ export class Entities extends Engine {
 
         this.entity_string = "";
         this.entity_image = "";
+        this.entity_colour = "";
 
         this.init.bind(this)();
         this.entityInit();
@@ -145,18 +146,19 @@ export class Entities extends Engine {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @param {String} colour
-     * @param {Number} width How wide you want it to be (in px).
-     * @param {Number} height How tall you want it to be (in px).
+     * @param {Number*} width How wide you want it to be (in px).
+     * @param {Number*} height How tall you want it to be (in px).
+     * @param {String*} colour
      * @public
      */
-    drawSquare(x, y, colour, width = this.width, height = this.height) {
+    drawSquare(x, y, width = this.width, height = this.height, colour = "black") {
         const canvas = this.getCanvasEl().getContext("2d");
         canvas.fillStyle = colour;
         canvas.fillRect(x, y, width, height);
 
         this.x = x;
         this.y = y;
+        this.entity_colour = colour;
     }
 
     /**
@@ -202,9 +204,10 @@ export class Entities extends Engine {
 
     /** @private */
     renderCanvasAgainIfNecessary() {
-        const canvas = this.getCanvasEl().getContext("2d");
+        // We use our drawing functions because
+        // they already draw the necessary components to each entity's canvas.
         if (this.isTextEmpty()) {
-            canvas.fillRect(this.x, this.y, this.width, this.width);
+            this.drawSquare(this.x, this.y, this.width, this.height, this.entity_colour);
         } else {
             this.drawText(this.x, this.y, this.entity_string);
         }
@@ -241,7 +244,7 @@ export class Entities extends Engine {
     }
 
     /**
-     * Returns true if a particular key from a set of controls from an entity has been pressed. 
+     * Returns true if a particular key from a set of controls from an entity has been pressed.
      * False otherwise.
      * @param {String} key The key string to check for.
      * @public
@@ -277,21 +280,22 @@ export class Entities extends Engine {
     }
 
     /**
+     * An automatic singleton for every entity class object.
      * This is best use if you want to get the instance
      * of a player class (for example) without having to create
      * a new class instance altogether.
      * @public
      */
     static getInstance() {
-        return (
-            this.prototype.entity_instance ??
-            (this.prototype.entity_instance = new this(
-                this.prototype.name,
-                this.prototype.width,
-                this.prototype.height,
-                this.prototype.entity_options.control_set
-            ))
-        );
+        // return (
+        //     this.entity_instance ??
+        //     (this.entity_instance = new this(
+        //         this.name,
+        //         this.width,
+        //         this.height,
+        //         this.entity_controls.control_set
+        //     ))
+        // );
     }
 }
 

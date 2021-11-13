@@ -15,7 +15,7 @@ document.addEventListener(
             "ArrowDown",
         ]);
         new HUD("GameHud", window.innerWidth, window.innerHeight);
-        new Enemy("Enemy", 128, 128);
+        new Enemy("Enemy", 36, 36);
     },
     { once: true }
 );

@@ -10,11 +10,17 @@ export class HUD extends Entities {
      */
     entityInit()
     {
-        this.drawText(
+        // this.drawText(
+        //     64,
+        //     32,
+        //     "This is a text rendering test."
+        // );
+        this.drawImage(
+            "./img/cursor_test_img.png",
+            128,
+            128,
             64,
-            32,
-            "This text is huuuuuuge",
-            { fontSizeBase: 60, align: "right" }
+            64
         );
     }
 

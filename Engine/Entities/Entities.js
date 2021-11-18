@@ -45,8 +45,18 @@ export class Entities extends Engine {
         /** @private */
         this.entity_instance = null;
 
+        /** @private */
         this.entity_string = "";
-        this.entity_image = "";
+
+        /** @private */
+        this.entity_image = {
+            img_source: "",
+            img_width: 0,
+            img_height: 0,
+            img_object: {},
+        };
+
+        /** @private */
         this.entity_colour = "";
 
         this.init.bind(this)();
@@ -151,7 +161,13 @@ export class Entities extends Engine {
      * @param {String*} colour
      * @public
      */
-    drawSquare(x, y, width = this.width, height = this.height, colour = "black") {
+    drawSquare(
+        x,
+        y,
+        width = this.width,
+        height = this.height,
+        colour = "black"
+    ) {
         const canvas = this.getCanvasEl().getContext("2d");
         canvas.fillStyle = colour;
         canvas.fillRect(x, y, width, height);
@@ -192,12 +208,25 @@ export class Entities extends Engine {
     }
 
     /**
+     * Draws an image to the entity canvas.
+     * @param {String} imageSrc 
+     * @param {Number} width
+     * @param {Number} height
      * @param {Number} x
      * @param {Number} y
-     * @param {String} image
      * @public
      */
-    drawImage(x, y, image) {
+    drawImage(imageSrc, width, height, x, y) {
+        const canvas = this.getCanvasEl().getContext("2d");
+        this.entity_image.img_object = new Image(width, height);
+        this.entity_image.img_object.src = imageSrc;
+
+        this.entity_image.img_width = width;
+        this.entity_image.img_height = height;
+        this.entity_image.img_source = this.entity_image.img_object.currentSrc;
+
+        canvas.drawImage(this.entity_image.img_object, x, y);
+
         this.y = y;
         this.x = x;
     }
@@ -207,9 +236,27 @@ export class Entities extends Engine {
         // We use our drawing functions because
         // they already draw the necessary components to each entity's canvas.
         if (this.isTextEmpty()) {
-            this.drawSquare(this.x, this.y, this.width, this.height, this.entity_colour);
+            this.drawSquare(
+                this.x,
+                this.y,
+                this.width,
+                this.height,
+                this.entity_colour
+            );
         } else {
             this.drawText(this.x, this.y, this.entity_string);
+        }
+
+        if (this.isImgSourceEmpty()) {
+            // Do nothing for now.
+        } else {
+            this.drawImage(
+                this.entity_image.img_object.src,
+                this.width,
+                this.height,
+                this.x,
+                this.y
+            );
         }
     }
 
@@ -264,6 +311,15 @@ export class Entities extends Engine {
      */
     isTextEmpty() {
         return this.entity_string === "";
+    }
+
+    /**
+     * Same idea like {@link isTextEmpty} but for image
+     * sources.
+     * @private
+     */
+    isImgSourceEmpty() {
+        return this.entity_image.img_object.src ?? true;
     }
 
     /** @private */

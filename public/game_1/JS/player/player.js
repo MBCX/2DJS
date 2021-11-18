@@ -30,7 +30,7 @@ export class Player extends Entities {
     /**
      * @override
      */
-    entityStep() {
+    entityStep(cur) {
         const screen_h = this.getScreenWidthHeightArray()[1];
         const screen_w = this.getScreenWidthHeightArray()[0];
 

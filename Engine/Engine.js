@@ -44,6 +44,8 @@ export class Engine {
 
         /** @private */
         this.last_time_render = NaN;
+
+        /** @private */
         this.delta_time = null;
 
         /** @readonly */
@@ -57,8 +59,25 @@ export class Engine {
         document.body.style.overflow = "hidden";
 
         // Set-up main game loop and game resolution.
-        window.requestAnimationFrame(this.gameLoop.bind(this));
         window.addEventListener("resize", this.updateResolution.bind(this));
+        this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
+    }
+
+    /** @public */
+    initialise(functionAfterInitialisation) {
+        document.addEventListener(
+            "DOMContentLoaded",
+            functionAfterInitialisation,
+            { once: true }
+        );
+        document.addEventListener("beforeunload", this.cleanUp.bind(this), {
+            once: true,
+        });
+    }
+
+    /** @private */
+    cleanUp() {
+        this.useCorrectCancelAnimationFrame(this.gameLoop.bind(this));
     }
 
     /** @public */
@@ -66,13 +85,15 @@ export class Engine {
         // Skip first frame render.
         if (null == this.last_time_render) {
             this.last_time_render = time_render;
-            window.requestAnimationFrame(this.gameLoop.bind(this));
+            this.useCorrectWindowAnimationFrame(
+                this.gameLoop.bind(this, time_render)
+            );
             return;
         }
-        this.updateResolution();
-        this.last_time_render = time_render;
         this.delta_time = time_render - this.last_time_render;
-        window.requestAnimationFrame(this.gameLoop.bind(this));
+        this.last_time_render = time_render;
+        this.updateResolution();
+        this.useCorrectWindowAnimationFrame(() => this.gameLoop.bind(this, time_render));
     }
 
     /** @public */
@@ -99,6 +120,32 @@ export class Engine {
 
         document.body.style.width = this.screen_width + "px";
         document.body.style.height = this.screen_height + "px";
+    }
+
+    /** @public */
+    useCorrectWindowAnimationFrame(callback) {
+        if ("requestAnimationFrame" in window) {
+            window.requestAnimationFrame(callback);
+        } else if ("mozRequestAnimationFrame" in window) {
+            window.mozRequestAnimationFrame(callback);
+        } else if ("msRequestAnimationFrame" in window) {
+            window.msRequestAnimationFrame(callback);
+        } else {
+            return setTimeout(callback, 1000 / 60);
+        }
+    }
+
+    /** @public */
+    useCorrectCancelAnimationFrame(callback) {
+        if ("cancelAnimationFrame" in window) {
+            window.cancelAnimationFrame(callback);
+        } else if ("mozCancelAnimationFrame" in window) {
+            window.mozCancelAnimationFrame(callback);
+        } else if ("msCancelAnimationFrame" in window) {
+            window.msCancelAnimationFrame(callback);
+        } else {
+            return clearTimeout(callback);
+        }
     }
 }
 

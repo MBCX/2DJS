@@ -4,18 +4,13 @@ import Player from "./player/player.js";
 import Enemy from "./enemy/enemy.js";
 
 // Initialise.
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-        new Engine();
-        new Player("Player", 32, 32, [
-            "ArrowRight",
-            "ArrowLeft",
-            "ArrowUp",
-            "ArrowDown",
-        ]);
-        new HUD("GameHud", window.innerWidth, window.innerHeight);
-        new Enemy("Enemy", 36, 36);
-    },
-    { once: true }
-);
+new Engine().initialise(() => {
+    new Player("Player", 32, 32, [
+        "ArrowRight",
+        "ArrowLeft",
+        "ArrowUp",
+        "ArrowDown",
+    ]);
+    new Enemy("Enemy", 36, 36);
+    new HUD("GameHud", window.innerWidth, window.innerHeight);
+});

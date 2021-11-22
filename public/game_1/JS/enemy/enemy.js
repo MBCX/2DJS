@@ -2,8 +2,8 @@ import Entities from "../../../../Engine/Entities/Entities.js";
 import Player from "../player/player.js";
 
 export class Enemy extends Entities {
-    constructor(entity_name, width, height) {
-        super(entity_name, width, height);
+    constructor(entity_name, width, height, controls) {
+        super(entity_name, width, height, controls);
     }
 
     /**

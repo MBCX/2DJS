@@ -10,11 +10,6 @@ export class HUD extends Entities {
      */
     entityInit()
     {
-        // this.drawText(
-        //     64,
-        //     32,
-        //     "This is a text rendering test."
-        // );
         this.drawImage(
             "./img/cursor_test_img.png",
             128,
@@ -22,6 +17,7 @@ export class HUD extends Entities {
             64,
             64
         );
+        this.drawText(64, 32, "This is a text rendering test.");
     }
 
     /**

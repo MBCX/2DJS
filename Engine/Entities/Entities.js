@@ -1,6 +1,24 @@
 import Engine from "../Engine.js";
 import { CANVAS_PREFIX_GAME_ID } from "../shared/shared_variables.js";
 
+/**
+ * @enum
+ * @private
+ */
+const draw_types = {
+    DEFAULT: 0,
+    SQUARE: 1,
+    TEXT: 2,
+    IMAGE: 3,
+};
+let current_draw_type_by_entity = [];
+let current_entity_index = 0;
+
+/**
+ * @private
+ */
+let entities_map = new Map();
+
 export class Entities extends Engine {
     constructor(entity_name, width, height, controls = []) {
         super();
@@ -12,12 +30,6 @@ export class Entities extends Engine {
             "2d"
         ).webkitImageSmoothingEnabled = true;
         this.canvas_container.getContext("2d").imageSmoothingEnabled = true;
-
-        /**
-         * @readonly
-         * @private
-         */
-        this.entities_map = new Map();
 
         /** @readonly */
         this.name = entity_name;
@@ -57,10 +69,13 @@ export class Entities extends Engine {
         };
 
         /** @private */
-        this.entity_colour = "";
-
+        this.entity_current_colour = "";
+            
         this.init.bind(this)();
         this.entityInit();
+        
+        current_draw_type_by_entity.push(current_entity_index);
+        current_entity_index++;
     }
 
     /** @public */
@@ -70,12 +85,12 @@ export class Entities extends Engine {
 
     /** @public */
     getEntityId() {
-        return this.entities_map.get(this.name);
+        return entities_map.get(this.name);
     }
 
     /** @public */
     getAllEntities() {
-        return this.entities_map;
+        return entities_map;
     }
 
     /** @public */
@@ -104,7 +119,7 @@ export class Entities extends Engine {
      */
     init() {
         // Makes sure all entities have unique IDs.
-        this.entities_map.set(this.name, Date.now());
+        entities_map.set(this.name, Date.now());
 
         // Managing controlable entities.
         if (this.entity_controls.control_set.length > 0) {
@@ -127,6 +142,14 @@ export class Entities extends Engine {
         this.entityStep();
         this.setCanvasProperties();
         this.renderCanvasAgainIfNecessary();
+
+        this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
+    }
+
+    /** @override */
+    runInit() {
+        this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
+        this.entityInit();
     }
 
     /** @public */
@@ -174,7 +197,8 @@ export class Entities extends Engine {
 
         this.x = x;
         this.y = y;
-        this.entity_colour = colour;
+        this.entity_current_colour = colour;
+        current_draw_type_by_entity[current_entity_index] = draw_types.SQUARE;
     }
 
     /**
@@ -205,11 +229,12 @@ export class Entities extends Engine {
 
         this.x = x;
         this.y = y;
+        current_draw_type_by_entity[current_entity_index] = draw_types.TEXT;
     }
 
     /**
      * Draws an image to the entity canvas.
-     * @param {String} imageSrc 
+     * @param {String} imageSrc
      * @param {Number} width
      * @param {Number} height
      * @param {Number} x
@@ -229,35 +254,44 @@ export class Entities extends Engine {
 
         this.y = y;
         this.x = x;
+        current_draw_type_by_entity[current_entity_index] = draw_types.IMAGE;
     }
 
     /** @private */
     renderCanvasAgainIfNecessary() {
-        // We use our drawing functions because
-        // they already draw the necessary components to each entity's canvas.
-        if (this.isTextEmpty()) {
-            this.drawSquare(
-                this.x,
-                this.y,
-                this.width,
-                this.height,
-                this.entity_colour
-            );
-        } else {
-            this.drawText(this.x, this.y, this.entity_string);
-        }
+        for (let i = 0; current_draw_type_by_entity.length > i; ++i) {
+            // We use our drawing functions because
+            // they already draw the necessary components to each entity's canvas.
+            switch (current_draw_type_by_entity[i]) {
+                case draw_types.SQUARE:
+                    this.drawSquare(
+                        this.x,
+                        this.y,
+                        this.width,
+                        this.height,
+                        ('' === this.entity_current_colour) ? "transparent" : this.entity_current_colour
+                    );
+                    break;
+                case draw_types.TEXT:
+                    console.log(current_draw_type_by_entity[i].length);
+                    this.drawText(this.x, this.y, this.entity_string);
+                    break;
+                case draw_types.IMAGE:
+                    if (undefined == this.entity_image.img_object.src) {
+                        return;
+                    }
 
-        if (this.isImgSourceEmpty()) {
-            // Do nothing for now.
-        } else {
-            this.drawImage(
-                this.entity_image.img_object.src,
-                this.width,
-                this.height,
-                this.x,
-                this.y
-            );
+                    this.drawImage(
+                        this.entity_image.img_object.src,
+                        this.width,
+                        this.height,
+                        this.x,
+                        this.y
+                    );
+                    break;
+            }
         }
+        
     }
 
     /**
@@ -309,8 +343,8 @@ export class Entities extends Engine {
      * that have text in their canvas (like HUDs).
      * @private
      */
-    isTextEmpty() {
-        return this.entity_string === "";
+    isTextEmpty(string) {
+        return string === "";
     }
 
     /**

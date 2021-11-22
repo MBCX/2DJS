@@ -9,7 +9,7 @@ export class Player extends Entities {
      * @override
      */
     entityInit() {
-        this.CUSTOM_COORDS_INC = this.getDeltaTime();
+        this.CUSTOM_COORDS_INC = 1;
         this.CUSTOM_COORDS_DEC = 1;
         this.MAX_SPEED = 10;
         this.x = 32;

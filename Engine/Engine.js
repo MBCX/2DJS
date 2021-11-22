@@ -1,6 +1,9 @@
 import EngineMath from "./Math/EngineMath.js";
 import EngineUtils from "./utils/EngineUtils.js";
 
+/** @private */
+let delta_time = null;
+
 export class Engine {
     constructor() {
         /**
@@ -43,16 +46,16 @@ export class Engine {
         this.device_dpi = window.devicePixelRatio ?? 1;
 
         /** @private */
-        this.last_time_render = NaN;
-
-        /** @private */
-        this.delta_time = null;
+        this.last_time_render = -1;
 
         /** @readonly */
         this.engine_math = new EngineMath();
 
         /** @readonly */
         this.engine_utils = new EngineUtils();
+
+        /** @public */
+        this.current_delta_time = 0;
 
         document.body.style.margin = 0;
         document.body.style.padding = 0;
@@ -67,13 +70,19 @@ export class Engine {
     initialise(functionAfterInitialisation) {
         document.addEventListener(
             "DOMContentLoaded",
-            functionAfterInitialisation,
+            () => {
+                functionAfterInitialisation();
+                this.runInit();
+            },
             { once: true }
         );
         document.addEventListener("beforeunload", this.cleanUp.bind(this), {
             once: true,
         });
     }
+
+    /** @public */
+    runInit() {}
 
     /** @private */
     cleanUp() {
@@ -83,22 +92,31 @@ export class Engine {
     /** @public */
     gameLoop(time_render) {
         // Skip first frame render.
-        if (null == this.last_time_render) {
+        if (-1 == this.last_time_render) {
             this.last_time_render = time_render;
             this.useCorrectWindowAnimationFrame(
                 this.gameLoop.bind(this, time_render)
             );
             return;
         }
-        this.delta_time = time_render - this.last_time_render;
+        delta_time = time_render - this.last_time_render;
         this.last_time_render = time_render;
         this.updateResolution();
-        this.useCorrectWindowAnimationFrame(() => this.gameLoop.bind(this, time_render));
+        this.useCorrectWindowAnimationFrame(() => {
+            this.gameLoop.bind(this, time_render)
+            this.updateCurrentDeltaTime(delta_time);
+        });
     }
 
     /** @public */
     getDeltaTime() {
-        return this.delta_time;
+        return this.current_delta_time;
+    }
+
+    /** @private */
+    updateCurrentDeltaTime(delta)
+    {
+        this.current_delta_time = delta
     }
 
     /**

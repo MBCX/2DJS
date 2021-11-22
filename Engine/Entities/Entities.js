@@ -91,7 +91,6 @@ export class Entities extends Engine {
 
         this.init.bind(this)();
         this.entityInit();
-        console.log(entity_draw_text);
     }
 
     /** @public */
@@ -278,6 +277,9 @@ export class Entities extends Engine {
             entity_draw_text.imageRender.width.push(width);
             entity_draw_text.imageRender.height.push(height);
             entity_draw_text.imageRender.amount++;
+        } else {
+            entity_draw_text.imageRender.x[this.getEntityId()] = x;
+            entity_draw_text.imageRender.y[this.getEntityId()] = y;
         }
     }
 

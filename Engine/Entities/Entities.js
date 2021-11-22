@@ -6,18 +6,36 @@ import { CANVAS_PREFIX_GAME_ID } from "../shared/shared_variables.js";
  * @private
  */
 const draw_types = {
-    DEFAULT: 0,
-    SQUARE: 1,
-    TEXT: 2,
-    IMAGE: 3,
+    SQUARE: 0,
+    TEXT: 1,
+    IMAGE: 2,
 };
-let current_draw_type_by_entity = [];
-let current_entity_index = 0;
+
+/**
+ * @private
+ */
+const entity_draw_text = {
+    textRender: {
+        x: [],
+        y: [],
+        amount: 0,
+        texts: []
+    },
+    imageRender: {
+        x: [],
+        y: [],
+        width: [],
+        height: [],
+        amount: 0,
+        images: []
+    },
+}
 
 /**
  * @private
  */
 let entities_map = new Map();
+let entity_id = 0;
 
 export class Entities extends Engine {
     constructor(entity_name, width, height, controls = []) {
@@ -70,12 +88,10 @@ export class Entities extends Engine {
 
         /** @private */
         this.entity_current_colour = "";
-            
+
         this.init.bind(this)();
         this.entityInit();
-        
-        current_draw_type_by_entity.push(current_entity_index);
-        current_entity_index++;
+        console.log(entity_draw_text);
     }
 
     /** @public */
@@ -119,7 +135,7 @@ export class Entities extends Engine {
      */
     init() {
         // Makes sure all entities have unique IDs.
-        entities_map.set(this.name, Date.now());
+        entities_map.set(this.name, entity_id++);
 
         // Managing controlable entities.
         if (this.entity_controls.control_set.length > 0) {
@@ -198,7 +214,6 @@ export class Entities extends Engine {
         this.x = x;
         this.y = y;
         this.entity_current_colour = colour;
-        current_draw_type_by_entity[current_entity_index] = draw_types.SQUARE;
     }
 
     /**
@@ -226,10 +241,13 @@ export class Entities extends Engine {
         canvas.fillStyle = styles.fill;
         canvas.textAlign = styles.align;
         canvas.fillText(this.entity_string, x, y);
-
-        this.x = x;
-        this.y = y;
-        current_draw_type_by_entity[current_entity_index] = draw_types.TEXT;
+        
+        if (!entity_draw_text.textRender.texts.includes(text)) {
+            entity_draw_text.textRender.texts.push(text);
+            entity_draw_text.textRender.x.push(x);
+            entity_draw_text.textRender.y.push(y);
+            entity_draw_text.textRender.amount++;
+        }
     }
 
     /**
@@ -249,49 +267,58 @@ export class Entities extends Engine {
         this.entity_image.img_width = width;
         this.entity_image.img_height = height;
         this.entity_image.img_source = this.entity_image.img_object.currentSrc;
-
         canvas.drawImage(this.entity_image.img_object, x, y);
-
-        this.y = y;
-        this.x = x;
-        current_draw_type_by_entity[current_entity_index] = draw_types.IMAGE;
+        
+        if (!entity_draw_text.imageRender.images.includes(this.entity_image.img_object.currentSrc)) {
+            entity_draw_text.imageRender.images.push(
+                this.entity_image.img_object.currentSrc
+            );
+            entity_draw_text.imageRender.x.push(x);
+            entity_draw_text.imageRender.y.push(y);
+            entity_draw_text.imageRender.width.push(width);
+            entity_draw_text.imageRender.height.push(height);
+            entity_draw_text.imageRender.amount++;
+        }
     }
 
     /** @private */
     renderCanvasAgainIfNecessary() {
-        for (let i = 0; current_draw_type_by_entity.length > i; ++i) {
-            // We use our drawing functions because
-            // they already draw the necessary components to each entity's canvas.
-            switch (current_draw_type_by_entity[i]) {
-                case draw_types.SQUARE:
-                    this.drawSquare(
-                        this.x,
-                        this.y,
-                        this.width,
-                        this.height,
-                        ('' === this.entity_current_colour) ? "transparent" : this.entity_current_colour
-                    );
-                    break;
-                case draw_types.TEXT:
-                    console.log(current_draw_type_by_entity[i].length);
-                    this.drawText(this.x, this.y, this.entity_string);
-                    break;
-                case draw_types.IMAGE:
-                    if (undefined == this.entity_image.img_object.src) {
-                        return;
-                    }
+        // We use our drawing functions because
+        // they already draw the necessary components to each entity's canvas.
+        this.drawSquare(
+            this.x,
+            this.y,
+            this.width,
+            this.height,
+            "" === this.entity_current_colour
+                ? "transparent"
+                : this.entity_current_colour
+        );
 
-                    this.drawImage(
-                        this.entity_image.img_object.src,
-                        this.width,
-                        this.height,
-                        this.x,
-                        this.y
-                    );
-                    break;
-            }
+
+        // Cycle through each text and image that the developer wants to
+        // draw, and draw each one.
+        for (let i = 0; entity_draw_text.textRender.texts.length > i; ++i) {
+            this.drawText(
+                entity_draw_text.textRender.x[i],
+                entity_draw_text.textRender.y[i],
+                entity_draw_text.textRender.texts[i]
+            );
         }
-        
+
+        for (
+            let i = 0;
+            entity_draw_text.imageRender.images.length > i;
+            ++i
+        ) {
+            this.drawImage(
+                entity_draw_text.imageRender.images[i],
+                entity_draw_text.imageRender.width[i],
+                entity_draw_text.imageRender.height[i],
+                entity_draw_text.imageRender.x[i],
+                entity_draw_text.imageRender.y[i]
+            );
+        }
     }
 
     /**

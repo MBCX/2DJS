@@ -9,8 +9,8 @@ export class Player extends Entities {
      * @override
      */
     entityInit() {
-        this.CUSTOM_COORDS_INC = 1;
-        this.CUSTOM_COORDS_DEC = 1;
+        this.CUSTOM_COORDS_INC = 0.75;
+        this.CUSTOM_COORDS_DEC = 0.5;
         this.MAX_SPEED = 10;
         this.x = 32;
         this.custom_coords = {

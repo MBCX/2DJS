@@ -18,16 +18,16 @@ const entity_draw_text = {
     textRender: {
         x: [],
         y: [],
-        amount: 0,
-        texts: []
+        texts: [],
+        amount: -1,
     },
     imageRender: {
         x: [],
         y: [],
         width: [],
         height: [],
-        amount: 0,
-        images: []
+        images: [],
+        amount: -1,
     },
 }
 
@@ -216,8 +216,8 @@ export class Entities extends Engine {
     }
 
     /**
-     * @param {Number} x
-     * @param {Number} y
+     * @param {Number} x Text position in screen pixels.
+     * @param {Number} y Text position in screen pixels.
      * @param {String} text
      * @param {Object*} styles
      * @public
@@ -239,14 +239,24 @@ export class Entities extends Engine {
         canvas.font = styles.fontSizeBase + "px " + styles.fontName;
         canvas.fillStyle = styles.fill;
         canvas.textAlign = styles.align;
-        canvas.fillText(this.entity_string, x, y);
         
         if (!entity_draw_text.textRender.texts.includes(text)) {
             entity_draw_text.textRender.texts.push(text);
             entity_draw_text.textRender.x.push(x);
             entity_draw_text.textRender.y.push(y);
             entity_draw_text.textRender.amount++;
+        } else {
+            for (let i = 0; entity_draw_text.textRender.texts.length > i; ++i) {
+                // Assume the developer wants to move the image.
+                entity_draw_text.textRender.x[i] = x;
+                entity_draw_text.textRender.y[i] = y;
+            }
         }
+        canvas.fillText(
+            this.entity_string,
+            entity_draw_text.textRender.x[entity_draw_text.textRender.amount],
+            entity_draw_text.textRender.y[entity_draw_text.textRender.amount]
+        );
     }
 
     /**
@@ -266,7 +276,6 @@ export class Entities extends Engine {
         this.entity_image.img_width = width;
         this.entity_image.img_height = height;
         this.entity_image.img_source = this.entity_image.img_object.currentSrc;
-        canvas.drawImage(this.entity_image.img_object, x, y);
         
         if (!entity_draw_text.imageRender.images.includes(this.entity_image.img_object.currentSrc)) {
             entity_draw_text.imageRender.images.push(
@@ -278,9 +287,17 @@ export class Entities extends Engine {
             entity_draw_text.imageRender.height.push(height);
             entity_draw_text.imageRender.amount++;
         } else {
-            entity_draw_text.imageRender.x[this.getEntityId()] = x;
-            entity_draw_text.imageRender.y[this.getEntityId()] = y;
+            for (let i = 0; entity_draw_text.imageRender.images.length > i; ++i) {
+                // Assume the developer wants to move the image.
+                entity_draw_text.imageRender.x[i] = x;
+                entity_draw_text.imageRender.y[i] = y;
+            }
         }
+        canvas.drawImage(
+            this.entity_image.img_object,
+            entity_draw_text.imageRender.x[entity_draw_text.imageRender.amount],
+            entity_draw_text.imageRender.y[entity_draw_text.imageRender.amount]
+        );
     }
 
     /** @private */

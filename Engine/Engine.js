@@ -44,6 +44,8 @@ export class Engine {
         this.screen_width = this.getScreenWidthHeightArray()[0];
         this.screen_height = this.getScreenWidthHeightArray()[1];
         this.device_dpi = window.devicePixelRatio ?? 1;
+        this.mouse_x = 0;
+        this.mouse_y = 0;
 
         /** @private */
         this.last_time_render = -1;
@@ -61,8 +63,9 @@ export class Engine {
         document.body.style.padding = 0;
         document.body.style.overflow = "hidden";
 
-        // Set-up main game loop and game resolution.
+        // Set-up main game loop and other useful information.
         window.addEventListener("resize", this.updateResolution.bind(this));
+        window.addEventListener("mousemove", this.updateMousePosition.bind(this));
         this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
     }
 
@@ -87,6 +90,7 @@ export class Engine {
     /** @private */
     cleanUp() {
         this.useCorrectCancelAnimationFrame(this.gameLoop.bind(this));
+        window.removeEventListener("mousemove", this.updateMousePosition.bind(this));
     }
 
     /** @public */
@@ -104,19 +108,12 @@ export class Engine {
         this.updateResolution();
         this.useCorrectWindowAnimationFrame(() => {
             this.gameLoop.bind(this, time_render)
-            this.updateCurrentDeltaTime(delta_time);
         });
     }
 
     /** @public */
     getDeltaTime() {
-        return this.current_delta_time;
-    }
-
-    /** @private */
-    updateCurrentDeltaTime(delta)
-    {
-        this.current_delta_time = delta
+        return delta_time;
     }
 
     /**
@@ -138,6 +135,12 @@ export class Engine {
 
         document.body.style.width = this.screen_width + "px";
         document.body.style.height = this.screen_height + "px";
+    }
+
+    /** @private */
+    updateMousePosition(e) {
+        this.mouse_x = e.clientX;
+        this.mouse_y = e.clientY;
     }
 
     /** @public */

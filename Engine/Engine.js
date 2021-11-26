@@ -1,9 +1,6 @@
 import EngineMath from "./Math/EngineMath.js";
 import EngineUtils from "./utils/EngineUtils.js";
 
-/** @private */
-let delta_time = null;
-
 export class Engine {
     constructor() {
         /**
@@ -41,8 +38,8 @@ export class Engine {
             IE: /*@cc_on!@*/ false || !!document.documentMode,
         };
 
-        this.screen_width = this.getScreenWidthHeightArray()[0];
-        this.screen_height = this.getScreenWidthHeightArray()[1];
+        this.window_width = this.getScreenWidthHeightArray()[0];
+        this.window_height = this.getScreenWidthHeightArray()[1];
         this.device_dpi = window.devicePixelRatio ?? 1;
         this.mouse_x = 0;
         this.mouse_y = 0;
@@ -56,16 +53,16 @@ export class Engine {
         /** @readonly */
         this.engine_utils = new EngineUtils();
 
-        /** @public */
-        this.current_delta_time = 0;
-
         document.body.style.margin = 0;
         document.body.style.padding = 0;
         document.body.style.overflow = "hidden";
 
         // Set-up main game loop and other useful information.
         window.addEventListener("resize", this.updateResolution.bind(this));
-        window.addEventListener("mousemove", this.updateMousePosition.bind(this));
+        window.addEventListener(
+            "mousemove",
+            this.updateMousePosition.bind(this)
+        );
         this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
     }
 
@@ -90,30 +87,17 @@ export class Engine {
     /** @private */
     cleanUp() {
         this.useCorrectCancelAnimationFrame(this.gameLoop.bind(this));
-        window.removeEventListener("mousemove", this.updateMousePosition.bind(this));
+        window.removeEventListener(
+            "mousemove",
+            this.updateMousePosition.bind(this)
+        );
     }
 
     /** @public */
-    gameLoop(time_render) {
+    gameLoop() {
         // Skip first frame render.
-        if (-1 == this.last_time_render) {
-            this.last_time_render = time_render;
-            this.useCorrectWindowAnimationFrame(
-                this.gameLoop.bind(this, time_render)
-            );
-            return;
-        }
-        delta_time = time_render - this.last_time_render;
-        this.last_time_render = time_render;
         this.updateResolution();
-        this.useCorrectWindowAnimationFrame(() => {
-            this.gameLoop.bind(this, time_render)
-        });
-    }
-
-    /** @public */
-    getDeltaTime() {
-        return delta_time;
+        this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
     }
 
     /**
@@ -130,11 +114,11 @@ export class Engine {
 
     /** @private */
     updateResolution() {
-        this.screen_width = this.getScreenWidthHeightArray()[0];
-        this.screen_height = this.getScreenWidthHeightArray()[1];
+        this.window_width = this.getScreenWidthHeightArray()[0];
+        this.window_height = this.getScreenWidthHeightArray()[1];
 
-        document.body.style.width = this.screen_width + "px";
-        document.body.style.height = this.screen_height + "px";
+        document.body.style.width = this.window_width + "px";
+        document.body.style.height = this.window_height + "px";
     }
 
     /** @private */

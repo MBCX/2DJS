@@ -9,7 +9,7 @@ export class EngineMath {
     }
 
     /**
-     * Simple function that wraps a variable between 2 numbers.
+     * Simple function that wraps a variable between 2 values.
      * REFERENCE: https://www.youtube.com/watch?v=5JZAAbyUNsQ
      *
      * @param {Number} variable
@@ -25,16 +25,54 @@ export class EngineMath {
     }
 
     /** @public */
-    degToRad(degree)
-    {
-        return degree * Math.PI / 180;
+    degToRad(degree) {
+        return (degree * Math.PI) / 180;
     }
 
     /** @public */
-    radToDeg(radian)
-    {
-        let result = radian * 180 / Math.PI;
+    radToDeg(radian) {
+        let result = (radian * 180) / Math.PI;
         return this.wrap(result, -360, 360);
+    }
+
+    /**
+     * Sine waves a value between 2 values over a given time.
+     * REFERENCE: https://www.youtube.com/watch?v=5JZAAbyUNsQ
+     * @param {Number} from
+     * @param {Number} to
+     * @param {Number} duration How long will this take to wave from these 2 values?
+     * @param {Number*} offset
+     * @public
+     */
+    wave(from, to, duration, offset = 0) {
+        let _difference = (to - from) * 0.5;
+        return (
+            from +
+            _difference +
+            Math.sin(
+                ((Date.now() * 0.001 + duration * offset) / duration) *
+                    (Math.PI * 2)
+            ) *
+                _difference
+        );
+    }
+
+    /**
+     * Move a given value towards another value by a given amount.
+     * REFERENCE: https://www.youtube.com/watch?v=5JZAAbyUNsQ
+     * @param {Number} first_value
+     * @param {Number} second_value
+     * @param {Number} at_amount
+     */
+    approach(first_value, second_value, at_amount) {
+        if (first_value < second_value) {
+            first_value += at_amount;
+            if (first_value > second_value) return second_value;
+        } else {
+            first_value -= at_amount;
+            if (first_value < second_value) return second_value;
+        }
+        return first_value;
     }
 }
 export default EngineMath;

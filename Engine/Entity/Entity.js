@@ -2,16 +2,6 @@ import Engine from "../Engine.js";
 import { CANVAS_PREFIX_GAME_ID } from "../shared/shared_variables.js";
 
 /**
- * @enum
- * @private
- */
-const draw_types = {
-    SQUARE: 0,
-    TEXT: 1,
-    IMAGE: 2,
-};
-
-/**
  * @private
  */
 const entity_draw_text = {
@@ -19,7 +9,13 @@ const entity_draw_text = {
         x: [],
         y: [],
         texts: [],
-        amount: -1,
+        properties: {
+            text_rotation: [],
+            text_font_family: [],
+            text_fill_colour: [],
+            text_align: [],
+            text_font_size: [],
+        },
     },
     imageRender: {
         x: [],
@@ -27,9 +23,20 @@ const entity_draw_text = {
         width: [],
         height: [],
         images: [],
-        amount: -1,
+        images_obj: [],
     },
-}
+    squareRender: {
+        x: [],
+        y: [],
+        width: [],
+        height: [],
+        colour: [],
+        square_amount: 0,
+    },
+};
+
+/** @private */
+let delta_time = null;
 
 /**
  * @private
@@ -37,7 +44,7 @@ const entity_draw_text = {
 let entities_map = new Map();
 let entity_id = 0;
 
-export class Entities extends Engine {
+export class Entity extends Engine {
     constructor(entity_name, width, height, controls = []) {
         super();
         this.canvas_container = document.createElement("canvas");
@@ -55,6 +62,7 @@ export class Entities extends Engine {
         this.height = height;
         this.x = 0;
         this.y = 0;
+        this.last_time_render;
         console.assert(
             Array.isArray(controls),
             "Controls parameter for Entities must be an array."
@@ -76,9 +84,6 @@ export class Entities extends Engine {
         this.entity_instance = null;
 
         /** @private */
-        this.entity_string = "";
-
-        /** @private */
         this.entity_image = {
             img_source: "",
             img_width: 0,
@@ -86,11 +91,9 @@ export class Entities extends Engine {
             img_object: {},
         };
 
-        /** @private */
-        this.entity_current_colour = "";
-
         this.init.bind(this)();
         this.entityInit();
+        console.log(entity_draw_text);
     }
 
     /** @public */
@@ -153,12 +156,26 @@ export class Entities extends Engine {
     /**
      * @override
      */
-    gameLoop() {
+    gameLoop(current_time_render) {
+        // Calculate delta time before entity render.
+        if (null == this.last_time_render) {
+            this.last_time_render = current_time_render;
+            this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
+        }
+        delta_time = current_time_render - this.last_time_render;
+        this.last_time_render = current_time_render;
+
         this.entityStep();
+        this.entityDraw();
         this.setCanvasProperties();
-        this.renderCanvasAgainIfNecessary();
+        this.renderCanvasAgain();
 
         this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
+    }
+
+    /** @public */
+    getDeltaTime() {
+        return delta_time;
     }
 
     /** @override */
@@ -174,6 +191,9 @@ export class Entities extends Engine {
     entityStep() {}
 
     /** @public */
+    entityDraw() {}
+
+    /** @public */
     entityDestroy() {}
 
     /**
@@ -184,11 +204,11 @@ export class Entities extends Engine {
         const canvas = this.getCanvasEl();
         const ratio = this.getPixelRatio();
 
-        canvas.width = this.screen_width * ratio;
-        canvas.height = this.screen_height * ratio;
+        canvas.width = this.window_width * ratio;
+        canvas.height = this.window_height * ratio;
         canvas.style.position = "absolute";
-        canvas.style.width = this.screen_width + "px";
-        canvas.style.height = this.screen_height + "px";
+        canvas.style.width = this.window_width + "px";
+        canvas.style.height = this.window_height + "px";
     }
 
     /**
@@ -202,17 +222,54 @@ export class Entities extends Engine {
     drawSquare(
         x,
         y,
+        colour = "black",
         width = this.width,
-        height = this.height,
-        colour = "black"
+        height = this.height
     ) {
         const canvas = this.getCanvasEl().getContext("2d");
-        canvas.fillStyle = colour;
-        canvas.fillRect(x, y, width, height);
 
-        this.x = x;
-        this.y = y;
-        this.entity_current_colour = colour;
+        // We only need the colour of the squares to know
+        // wich we need to edit.
+        let currentColourIndex = 0;
+
+        if (!entity_draw_text.squareRender.colour.includes(colour)) {
+            entity_draw_text.squareRender.colour.push(colour);
+            entity_draw_text.squareRender.width.push(width);
+            entity_draw_text.squareRender.height.push(height);
+            entity_draw_text.squareRender.x.push(x);
+            entity_draw_text.squareRender.y.push(x);
+            entity_draw_text.squareRender.square_amount++;
+        } else {
+            // Go through all saved texts in the array,
+            // and find the one that the developer wants
+            // to edit.
+            entity_draw_text.squareRender.colour.reduce(
+                (previousValue, currentValue, currentIndex) => {
+                    if (
+                        colour ===
+                        entity_draw_text.squareRender.colour[currentIndex]
+                    ) {
+                        currentColourIndex = currentIndex;
+                        return;
+                    }
+                }
+            );
+
+            // Set the finded requested text's properties.
+            entity_draw_text.squareRender.x[currentColourIndex] = x;
+            entity_draw_text.squareRender.y[currentColourIndex] = y;
+        }
+
+        // Render each square x and y individually.
+        for (let i = 0; entity_draw_text.squareRender.colour.length > i; ++i) {
+            canvas.fillStyle = entity_draw_text.squareRender.colour[i];
+            canvas.fillRect(
+                entity_draw_text.squareRender.x[i],
+                entity_draw_text.squareRender.y[i],
+                entity_draw_text.squareRender.width[i],
+                entity_draw_text.squareRender.height[i]
+            );
+        }
     }
 
     /**
@@ -227,35 +284,84 @@ export class Entities extends Engine {
         y,
         text,
         styles = {
-            fontName: "system-ui",
+            fontFamily: "system-ui",
             fontSizeBase: 16,
             align: "center",
             fill: "black",
+            rotation: 0,
         }
     ) {
         const canvas = this.getCanvasEl().getContext("2d");
-        this.entity_string = text;
-        canvas.mozTextStyle = styles.fontSizeBase + "px " + styles.fontName;
-        canvas.font = styles.fontSizeBase + "px " + styles.fontName;
-        canvas.fillStyle = styles.fill;
-        canvas.textAlign = styles.align;
-        
+        let currentTextIndex = 0;
+
+        // For now, all drawn text must be unique.
         if (!entity_draw_text.textRender.texts.includes(text)) {
             entity_draw_text.textRender.texts.push(text);
             entity_draw_text.textRender.x.push(x);
             entity_draw_text.textRender.y.push(y);
-            entity_draw_text.textRender.amount++;
+            entity_draw_text.textRender.properties.text_rotation.push(
+                styles.rotation
+            );
+            entity_draw_text.textRender.properties.text_fill_colour.push(
+                styles.fill
+            );
+            entity_draw_text.textRender.properties.text_font_family.push(
+                styles.fontFamily
+            );
+            entity_draw_text.textRender.properties.text_align.push(
+                styles.align
+            );
+            entity_draw_text.textRender.properties.text_font_size.push(
+                styles.fontSizeBase
+            );
         } else {
-            for (let i = 0; entity_draw_text.textRender.texts.length > i; ++i) {
-                // Assume the developer wants to move the image.
-                entity_draw_text.textRender.x[i] = x;
-                entity_draw_text.textRender.y[i] = y;
-            }
+            // Go through all saved texts in the array,
+            // and find the one that the developer wants
+            // to edit.
+            entity_draw_text.textRender.texts.reduce(
+                (previousValue, currentValue, currentIndex) => {
+                    if (
+                        text === entity_draw_text.textRender.texts[currentIndex]
+                    ) {
+                        currentTextIndex = currentIndex;
+                        return;
+                    }
+                }
+            );
+
+            // Set the finded requested text's properties.
+            entity_draw_text.textRender.x[currentTextIndex] = x;
+            entity_draw_text.textRender.y[currentTextIndex] = y;
+            entity_draw_text.textRender.properties.text_rotation[
+                currentTextIndex
+            ] = styles.rotation;
+            canvas.rotate(
+                entity_draw_text.textRender.properties.text_rotation[
+                    currentTextIndex
+                ]
+            );
         }
+        canvas.font =
+            entity_draw_text.textRender.properties.text_font_size[
+                currentTextIndex
+            ] +
+            "px " +
+            entity_draw_text.textRender.properties.text_font_family[
+                currentTextIndex
+            ];
+        canvas.fillStyle =
+            entity_draw_text.textRender.properties.text_fill_colour[
+                currentTextIndex
+            ];
+        canvas.textAlign =
+            entity_draw_text.textRender.properties.text_align[currentTextIndex];
         canvas.fillText(
-            this.entity_string,
-            entity_draw_text.textRender.x[entity_draw_text.textRender.amount],
-            entity_draw_text.textRender.y[entity_draw_text.textRender.amount]
+            entity_draw_text.textRender.texts[currentTextIndex],
+            entity_draw_text.textRender.x[currentTextIndex],
+            entity_draw_text.textRender.y[currentTextIndex],
+            canvas.measureText(
+                entity_draw_text.textRender.texts[currentTextIndex]
+            ).width
         );
     }
 
@@ -270,14 +376,19 @@ export class Entities extends Engine {
      */
     drawImage(imageSrc, width, height, x, y) {
         const canvas = this.getCanvasEl().getContext("2d");
+        let currentImageIndex = 0;
         this.entity_image.img_object = new Image(width, height);
         this.entity_image.img_object.src = imageSrc;
 
         this.entity_image.img_width = width;
         this.entity_image.img_height = height;
         this.entity_image.img_source = this.entity_image.img_object.currentSrc;
-        
-        if (!entity_draw_text.imageRender.images.includes(this.entity_image.img_object.currentSrc)) {
+
+        if (
+            !entity_draw_text.imageRender.images.includes(
+                this.entity_image.img_object.currentSrc
+            )
+        ) {
             entity_draw_text.imageRender.images.push(
                 this.entity_image.img_object.currentSrc
             );
@@ -285,35 +396,51 @@ export class Entities extends Engine {
             entity_draw_text.imageRender.y.push(y);
             entity_draw_text.imageRender.width.push(width);
             entity_draw_text.imageRender.height.push(height);
-            entity_draw_text.imageRender.amount++;
+            entity_draw_text.imageRender.images_obj.push(
+                this.entity_image.img_object
+            );
         } else {
-            for (let i = 0; entity_draw_text.imageRender.images.length > i; ++i) {
-                // Assume the developer wants to move the image.
-                entity_draw_text.imageRender.x[i] = x;
-                entity_draw_text.imageRender.y[i] = y;
-            }
+            // Go through all saved images in the array,
+            // and find the one that the developer wants
+            // to edit.
+            entity_draw_text.imageRender.images.reduce(
+                (previousValue, currentValue, currentIndex) => {
+                    if (
+                        this.entity_image.img_object.currentSrc ===
+                        entity_draw_text.imageRender.images[currentIndex]
+                    ) {
+                        currentImageIndex = currentIndex;
+                        return;
+                    }
+                }
+            );
+
+            // Set the finded requested image's properties.
+            entity_draw_text.imageRender.x[currentImageIndex] = x;
+            entity_draw_text.imageRender.y[currentImageIndex] = y;
         }
+        
         canvas.drawImage(
-            this.entity_image.img_object,
-            entity_draw_text.imageRender.x[entity_draw_text.imageRender.amount],
-            entity_draw_text.imageRender.y[entity_draw_text.imageRender.amount]
+            entity_draw_text.imageRender.images_obj[currentImageIndex],
+            entity_draw_text.imageRender.x[currentImageIndex],
+            entity_draw_text.imageRender.y[currentImageIndex]
         );
     }
 
     /** @private */
-    renderCanvasAgainIfNecessary() {
+    renderCanvasAgain() {
         // We use our drawing functions because
         // they already draw the necessary components to each entity's canvas.
-        this.drawSquare(
-            this.x,
-            this.y,
-            this.width,
-            this.height,
-            "" === this.entity_current_colour
-                ? "transparent"
-                : this.entity_current_colour
-        );
-
+        for (let i = 0; entity_draw_text.squareRender.square_amount > i; ++i) {
+            // Draw each square.
+            this.drawSquare(
+                entity_draw_text.squareRender.x[i],
+                entity_draw_text.squareRender.y[i],
+                entity_draw_text.squareRender.width[i],
+                entity_draw_text.squareRender.height[i],
+                entity_draw_text.squareRender.colour[i]
+            );
+        }
 
         // Cycle through each text and image that the developer wants to
         // draw, and draw each one.
@@ -321,15 +448,32 @@ export class Entities extends Engine {
             this.drawText(
                 entity_draw_text.textRender.x[i],
                 entity_draw_text.textRender.y[i],
-                entity_draw_text.textRender.texts[i]
+                entity_draw_text.textRender.texts[i],
+                {
+                    fontFamily:
+                        entity_draw_text.textRender.properties.text_font_family[
+                            i
+                        ] ?? "system-ui",
+                    fontSizeBase:
+                        entity_draw_text.textRender.properties.text_font_size[
+                            i
+                        ] ?? 16,
+                    fill:
+                        entity_draw_text.textRender.properties.text_fill_colour[
+                            i
+                        ] ?? "black",
+                    rotation:
+                        entity_draw_text.textRender.properties.text_rotation[
+                            i
+                        ] ?? 0,
+                    align:
+                        entity_draw_text.textRender.properties.text_align[i] ??
+                        "center",
+                }
             );
         }
 
-        for (
-            let i = 0;
-            entity_draw_text.imageRender.images.length > i;
-            ++i
-        ) {
+        for (let i = 0; entity_draw_text.imageRender.images.length > i; ++i) {
             this.drawImage(
                 entity_draw_text.imageRender.images[i],
                 entity_draw_text.imageRender.width[i],
@@ -384,24 +528,6 @@ export class Entities extends Engine {
         return this.entity_controls.is_pressed[this.findRequestedKeyIndex(key)];
     }
 
-    /**
-     * This method is generally used to control entities or game objects
-     * that have text in their canvas (like HUDs).
-     * @private
-     */
-    isTextEmpty(string) {
-        return string === "";
-    }
-
-    /**
-     * Same idea like {@link isTextEmpty} but for image
-     * sources.
-     * @private
-     */
-    isImgSourceEmpty() {
-        return this.entity_image.img_object.src ?? true;
-    }
-
     /** @private */
     getPixelRatio() {
         const canvas = this.getCanvasEl().getContext("2d");
@@ -435,4 +561,4 @@ export class Entities extends Engine {
     }
 }
 
-export default Entities;
+export default Entity;

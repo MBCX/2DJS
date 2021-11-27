@@ -45,8 +45,26 @@ let entities_map = new Map();
 let entity_id = 0;
 
 export class Entity extends Engine {
+    static entity_width = 0;
+    static entity_height = 0;
+    static entity_controls = {
+        control_set: [],
+        is_pressed: []
+    };
+    entity_instance = null;
+
     constructor(entity_name, width, height, controls = []) {
         super();
+
+        // Only allow creating entities using the getInstance
+        // static method.
+        if (this.entity_instance == null) {
+            this.entity_instance = this;
+        } else {
+            console.error(`Please do not create instances using the new keyword. Instead, use the getInstance singleton. (Entity name: ${entity_name})`);
+            return;
+        }
+        
         this.canvas_container = document.createElement("canvas");
         this.canvas_container.id = `${CANVAS_PREFIX_GAME_ID}-${entity_name}`;
 
@@ -56,32 +74,25 @@ export class Entity extends Engine {
         ).webkitImageSmoothingEnabled = true;
         this.canvas_container.getContext("2d").imageSmoothingEnabled = true;
 
-        /** @readonly */
-        this.name = entity_name;
-        this.width = width;
-        this.height = height;
-        this.x = 0;
-        this.y = 0;
-        this.last_time_render;
         console.assert(
             Array.isArray(controls),
             "Controls parameter for Entities must be an array."
         );
 
+        this.entity_width = width;
+        this.entity_height = height;
+
         /**
          * Holds the set of keys for an entity.
-         * @property control_set
-         * @property is_pressed
-         * @readonly
-         * @private
+         * @enum entity_controls
          */
         this.entity_controls = {
             control_set: controls,
             is_pressed: new Array(controls.length),
         };
-
-        /** @private */
-        this.entity_instance = null;
+        this.x = 0;
+        this.y = 0;
+        this.last_time_render;
 
         /** @private */
         this.entity_image = {
@@ -93,7 +104,8 @@ export class Entity extends Engine {
 
         this.init();
         this.entityInit();
-        console.log(entity_draw_text);
+
+        // console.log(entity_draw_text);
     }
 
     /** @public */
@@ -157,7 +169,8 @@ export class Entity extends Engine {
      * @override
      */
     gameLoop(current_time_render) {
-        // Calculate delta time before entity render.
+        // Skip first frame render and
+        // calculate delta time before entity render.
         if (null == this.last_time_render) {
             this.last_time_render = current_time_render;
             this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
@@ -214,17 +227,17 @@ export class Entity extends Engine {
     /**
      * @param {Number} x
      * @param {Number} y
+     * @param {String} colour
      * @param {Number} width How wide you want it to be (in px).
      * @param {Number} height How tall you want it to be (in px).
-     * @param {String} colour
      * @public
      */
     drawSquare(
         x,
         y,
         colour = "black",
-        width = this.width,
-        height = this.height
+        width = this.entity_width,
+        height = this.entity_height
     ) {
         const canvas = this.getCanvasEl().getContext("2d");
 
@@ -258,6 +271,7 @@ export class Entity extends Engine {
             // Set the finded requested text's properties.
             entity_draw_text.squareRender.x[currentColourIndex] = x;
             entity_draw_text.squareRender.y[currentColourIndex] = y;
+            entity_draw_text.squareRender.colour[currentColourIndex] = colour;
         }
 
         // Render each square x and y individually.
@@ -419,7 +433,7 @@ export class Entity extends Engine {
             entity_draw_text.imageRender.x[currentImageIndex] = x;
             entity_draw_text.imageRender.y[currentImageIndex] = y;
         }
-        
+
         canvas.drawImage(
             entity_draw_text.imageRender.images_obj[currentImageIndex],
             entity_draw_text.imageRender.x[currentImageIndex],
@@ -436,9 +450,9 @@ export class Entity extends Engine {
             this.drawSquare(
                 entity_draw_text.squareRender.x[i],
                 entity_draw_text.squareRender.y[i],
+                entity_draw_text.squareRender.colour[i],
                 entity_draw_text.squareRender.width[i],
-                entity_draw_text.squareRender.height[i],
-                entity_draw_text.squareRender.colour[i]
+                entity_draw_text.squareRender.height[i]
             );
         }
 
@@ -548,17 +562,11 @@ export class Entity extends Engine {
      * a new class instance altogether.
      * @public
      */
-    static getInstance() {
-        // return (
-        //     this.entity_instance ??
-        //     (this.entity_instance = new this(
-        //         this.name,
-        //         this.width,
-        //         this.height,
-        //         this.entity_controls.control_set
-        //     ))
-        // );
+    static getInstance(n, w, h, control) {
+        return this.entity_instance ??
+            (this.entity_instance = new this(n, w, h, control));
     }
 }
 
+Object.freeze(Entity);
 export default Entity;

@@ -1,11 +1,13 @@
 import { Engine } from "../../../../Engine/Engine.js";
-import MainSquare from "./collision_test.js";
+import CollisionSquare from "./collision_square.js";
+import MainSquare from "./main_square.js";
 
 new Engine().initialise(() => {
-    new MainSquare("TestCollisions", 42, 42, [
+    MainSquare.getInstance("TestCollisions", 42, 42, [
         "ArrowLeft",
         "ArrowRight",
         "ArrowUp",
-        "ArrowDown"
+        "ArrowDown",
     ]);
+    CollisionSquare.getInstance("CollisionSquare", 64, 64);
 });

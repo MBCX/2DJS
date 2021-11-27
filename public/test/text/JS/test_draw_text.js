@@ -36,10 +36,7 @@ export class TestTextDrawing extends Entity {
         this.drawText(
             this.window_width / 2,
             32,
-            "Text rendering in 2DJS",
-            {
-                fontSizeBase: 32
-            }
+            "Text rendering in 2DJS"
         )
         this.drawText(
             this.wrap_text_x,
@@ -56,7 +53,7 @@ export class TestTextDrawing extends Entity {
             this.mouse_x,
             this.mouse_y - 10,
             "I follow your mouse up!"
-        )
+        );
 
         this.drawText(
             this.mouse_x,

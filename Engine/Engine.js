@@ -1,4 +1,5 @@
 import EngineMath from "./Math/EngineMath.js";
+import EnginePhysics from "./Physics/EnginePhysics.js";
 import EngineUtils from "./utils/EngineUtils.js";
 
 export class Engine {
@@ -52,6 +53,9 @@ export class Engine {
         /** @readonly */
         this.engine_utils = new EngineUtils();
 
+        /** @readonly */
+        this.engine_physics = new EnginePhysics();
+
         document.body.style.margin = 0;
         document.body.style.padding = 0;
         document.body.style.overflow = "hidden";
@@ -94,7 +98,6 @@ export class Engine {
 
     /** @public */
     gameLoop() {
-        // Skip first frame render.
         this.updateResolution();
         this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
     }

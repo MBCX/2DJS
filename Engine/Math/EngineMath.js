@@ -1,7 +1,7 @@
 /**
  * Magic number used as seed for the custom pseudo-random
  * number generator. It comes from the following formula:
- * 
+ *
  * f(x) = 1 / 3^n. Where n is 4.
  * @private
  */
@@ -12,6 +12,7 @@ export class EngineMath {
      * @param {Number} variable
      * @param {Number} min
      * @param {Number} max
+     * @public
      */
     clamp(variable, min, max) {
         return Math.min(max, Math.max(min, variable));
@@ -24,6 +25,7 @@ export class EngineMath {
      * @param {Number} variable
      * @param {Number} wrap_min The lowest wrapping number.
      * @param {Number} wrap_max The highest wrapping number.
+     * @public
      */
     wrap(variable, wrap_min, wrap_max) {
         const _limiter = (variable - wrap_min) % (wrap_max - wrap_min);
@@ -72,6 +74,7 @@ export class EngineMath {
      * @param {Number} first_value
      * @param {Number} second_value
      * @param {Number} at_amount
+     * @public
      */
     approach(first_value, second_value, at_amount) {
         if (first_value < second_value) {
@@ -88,16 +91,27 @@ export class EngineMath {
      * A custom random pseudo-random number generator.
      * @param {Number} randomNumberLimit Limit how far you want to generate numbers.
      * @returns A sudo-random number with enough entropy.
+     * @public
      */
-    generateRandomNumber(randomNumberLimit = 255)
-    {
+    randomNumber(randomNumberLimit = 255) {
         // Use the current date and page performance as
         // main source of entropy for better random
         // generation.
-        const entropy = (
-            Date.now() + performance.now() / performance.timeOrigin
-        ) * NUMBER_GENERATOR_SEED;
+        const entropy =
+            (Date.now() + performance.now() / performance.timeOrigin) *
+            NUMBER_GENERATOR_SEED;
         return Math.floor(entropy * Math.random()) % randomNumberLimit;
+    }
+
+    /**
+     * Allows you to generate a set of random numbers between
+     * a certain minimum and maximum range.
+     * @param {Number} min
+     * @param {Number} max
+     * @public
+     */
+    randomNumberBetween(min, max) {
+        return this.randomNumber(max - min + 1);
     }
 }
 export default EngineMath;

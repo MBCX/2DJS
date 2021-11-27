@@ -49,7 +49,7 @@ export class Entity extends Engine {
     static entity_height = 0;
     static entity_controls = {
         control_set: [],
-        is_pressed: []
+        is_pressed: [],
     };
     entity_instance = null;
 
@@ -61,10 +61,12 @@ export class Entity extends Engine {
         if (this.entity_instance == null) {
             this.entity_instance = this;
         } else {
-            console.error(`Please do not create instances using the new keyword. Instead, use the getInstance singleton. (Entity name: ${entity_name})`);
+            console.error(
+                `Please do not create instances using the new keyword. Instead, use the getInstance singleton. (Entity name: ${entity_name})`
+            );
             return;
         }
-        
+
         this.canvas_container = document.createElement("canvas");
         this.canvas_container.id = `${CANVAS_PREFIX_GAME_ID}-${entity_name}`;
 
@@ -104,8 +106,7 @@ export class Entity extends Engine {
 
         this.init();
         this.entityInit();
-
-        // console.log(entity_draw_text);
+        console.log(entity_draw_text);
     }
 
     /** @public */
@@ -228,8 +229,8 @@ export class Entity extends Engine {
      * @param {Number} x
      * @param {Number} y
      * @param {String} colour
-     * @param {Number} width How wide you want it to be (in px).
-     * @param {Number} height How tall you want it to be (in px).
+     * @param {Number} width How wide you want the square to be (in px).
+     * @param {Number} height How tall you want the square to be (in px).
      * @public
      */
     drawSquare(
@@ -243,7 +244,7 @@ export class Entity extends Engine {
 
         // We only need the colour of the squares to know
         // wich we need to edit.
-        let currentColourIndex = 0;
+        let current_colour_index = 0;
 
         if (!entity_draw_text.squareRender.colour.includes(colour)) {
             entity_draw_text.squareRender.colour.push(colour);
@@ -252,38 +253,54 @@ export class Entity extends Engine {
             entity_draw_text.squareRender.x.push(x);
             entity_draw_text.squareRender.y.push(x);
             entity_draw_text.squareRender.square_amount++;
-        } else {
-            // Go through all saved texts in the array,
-            // and find the one that the developer wants
-            // to edit.
-            entity_draw_text.squareRender.colour.reduce(
-                (previousValue, currentValue, currentIndex) => {
-                    if (
-                        colour ===
-                        entity_draw_text.squareRender.colour[currentIndex]
-                    ) {
-                        currentColourIndex = currentIndex;
-                        return;
-                    }
-                }
-            );
-
-            // Set the finded requested text's properties.
-            entity_draw_text.squareRender.x[currentColourIndex] = x;
-            entity_draw_text.squareRender.y[currentColourIndex] = y;
-            entity_draw_text.squareRender.colour[currentColourIndex] = colour;
         }
+
+        // Go through all saved texts in the array,
+        // and find the one that the developer wants
+        // to edit.
+        entity_draw_text.squareRender.colour.reduce(
+            (previousValue, currentValue, currentIndex) => {
+                if (
+                    colour ===
+                    entity_draw_text.squareRender.colour[currentIndex]
+                ) {
+                    current_colour_index = currentIndex;
+                    return;
+                }
+            }
+        );
+
+        // Set the finded requested text's properties.
+        entity_draw_text.squareRender.x[current_colour_index] = x;
+        entity_draw_text.squareRender.y[current_colour_index] = y;
+        entity_draw_text.squareRender.colour[current_colour_index] = colour;
 
         // Render each square x and y individually.
-        for (let i = 0; entity_draw_text.squareRender.colour.length > i; ++i) {
-            canvas.fillStyle = entity_draw_text.squareRender.colour[i];
-            canvas.fillRect(
-                entity_draw_text.squareRender.x[i],
-                entity_draw_text.squareRender.y[i],
-                entity_draw_text.squareRender.width[i],
-                entity_draw_text.squareRender.height[i]
-            );
+        canvas.fillStyle =
+            entity_draw_text.squareRender.colour[current_colour_index];
+        canvas.fillRect(
+            entity_draw_text.squareRender.x[current_colour_index],
+            entity_draw_text.squareRender.y[current_colour_index],
+            entity_draw_text.squareRender.width[current_colour_index],
+            entity_draw_text.squareRender.height[current_colour_index]
+        );
+    }
+
+    /** @public */
+    changeSquareColour(changeColourTo) {
+        const entity_id = this.getEntityId();
+
+        // TODO: Investigate why ONLY when we call this method,
+        // the drawSquare method doesn't apply correctly width
+        // and height of the squares.
+        if (undefined == entity_draw_text.squareRender.width[entity_id]) {
+            entity_draw_text.squareRender.width[entity_id] = this.entity_width;
+            entity_draw_text.squareRender.height[entity_id] =
+                this.entity_height;
         }
+
+        entity_draw_text.squareRender.colour[entity_id] = changeColourTo;
+        return entity_draw_text.squareRender.colour[entity_id];
     }
 
     /**
@@ -306,7 +323,7 @@ export class Entity extends Engine {
         }
     ) {
         const canvas = this.getCanvasEl().getContext("2d");
-        let currentTextIndex = 0;
+        let current_text_index = 0;
 
         // For now, all drawn text must be unique.
         if (!entity_draw_text.textRender.texts.includes(text)) {
@@ -328,55 +345,63 @@ export class Entity extends Engine {
             entity_draw_text.textRender.properties.text_font_size.push(
                 styles.fontSizeBase
             );
-        } else {
-            // Go through all saved texts in the array,
-            // and find the one that the developer wants
-            // to edit.
-            entity_draw_text.textRender.texts.reduce(
-                (previousValue, currentValue, currentIndex) => {
-                    if (
-                        text === entity_draw_text.textRender.texts[currentIndex]
-                    ) {
-                        currentTextIndex = currentIndex;
-                        return;
-                    }
-                }
-            );
-
-            // Set the finded requested text's properties.
-            entity_draw_text.textRender.x[currentTextIndex] = x;
-            entity_draw_text.textRender.y[currentTextIndex] = y;
-            entity_draw_text.textRender.properties.text_rotation[
-                currentTextIndex
-            ] = styles.rotation;
-            canvas.rotate(
-                entity_draw_text.textRender.properties.text_rotation[
-                    currentTextIndex
-                ]
-            );
         }
+        
+        // Go through all saved texts in the array,
+        // and find the one that the developer wants
+        // to edit.
+        entity_draw_text.textRender.texts.reduce(
+            (previousValue, currentValue, currentIndex) => {
+                if (text === entity_draw_text.textRender.texts[currentIndex]) {
+                    current_text_index = currentIndex;
+                    return;
+                }
+            }
+        );
+
+        // Set the finded requested text's properties.
+        entity_draw_text.textRender.x[current_text_index] = x;
+        entity_draw_text.textRender.y[current_text_index] = y;
+        entity_draw_text.textRender.properties.text_rotation[
+            current_text_index
+        ] = styles.rotation;
+        canvas.rotate(
+            entity_draw_text.textRender.properties.text_rotation[
+                current_text_index
+            ]
+        );
         canvas.font =
             entity_draw_text.textRender.properties.text_font_size[
-                currentTextIndex
+                current_text_index
             ] +
             "px " +
             entity_draw_text.textRender.properties.text_font_family[
-                currentTextIndex
+                current_text_index
             ];
         canvas.fillStyle =
             entity_draw_text.textRender.properties.text_fill_colour[
-                currentTextIndex
+                current_text_index
             ];
         canvas.textAlign =
-            entity_draw_text.textRender.properties.text_align[currentTextIndex];
+            entity_draw_text.textRender.properties.text_align[
+                current_text_index
+            ];
         canvas.fillText(
-            entity_draw_text.textRender.texts[currentTextIndex],
-            entity_draw_text.textRender.x[currentTextIndex],
-            entity_draw_text.textRender.y[currentTextIndex],
+            entity_draw_text.textRender.texts[current_text_index],
+            entity_draw_text.textRender.x[current_text_index],
+            entity_draw_text.textRender.y[current_text_index],
             canvas.measureText(
-                entity_draw_text.textRender.texts[currentTextIndex]
+                entity_draw_text.textRender.texts[current_text_index]
             ).width
         );
+    }
+
+    /** @public */
+    changeTextString(string) {
+        const entity_id = this.getEntityId();
+
+        entity_draw_text.textRender.texts[entity_id] = string;
+        return entity_draw_text.textRender.texts[entity_id];
     }
 
     /**
@@ -390,7 +415,7 @@ export class Entity extends Engine {
      */
     drawImage(imageSrc, width, height, x, y) {
         const canvas = this.getCanvasEl().getContext("2d");
-        let currentImageIndex = 0;
+        let current_image_index = 0;
         this.entity_image.img_object = new Image(width, height);
         this.entity_image.img_object.src = imageSrc;
 
@@ -423,21 +448,21 @@ export class Entity extends Engine {
                         this.entity_image.img_object.currentSrc ===
                         entity_draw_text.imageRender.images[currentIndex]
                     ) {
-                        currentImageIndex = currentIndex;
+                        current_image_index = currentIndex;
                         return;
                     }
                 }
             );
 
             // Set the finded requested image's properties.
-            entity_draw_text.imageRender.x[currentImageIndex] = x;
-            entity_draw_text.imageRender.y[currentImageIndex] = y;
+            entity_draw_text.imageRender.x[current_image_index] = x;
+            entity_draw_text.imageRender.y[current_image_index] = y;
         }
 
         canvas.drawImage(
-            entity_draw_text.imageRender.images_obj[currentImageIndex],
-            entity_draw_text.imageRender.x[currentImageIndex],
-            entity_draw_text.imageRender.y[currentImageIndex]
+            entity_draw_text.imageRender.images_obj[current_image_index],
+            entity_draw_text.imageRender.x[current_image_index],
+            entity_draw_text.imageRender.y[current_image_index]
         );
     }
 
@@ -445,7 +470,7 @@ export class Entity extends Engine {
     renderCanvasAgain() {
         // We use our drawing functions because
         // they already draw the necessary components to each entity's canvas.
-        for (let i = 0; entity_draw_text.squareRender.square_amount > i; ++i) {
+        for (let i = 0; entity_draw_text.squareRender.colour.length > i; ++i) {
             // Draw each square.
             this.drawSquare(
                 entity_draw_text.squareRender.x[i],
@@ -563,8 +588,10 @@ export class Entity extends Engine {
      * @public
      */
     static getInstance(n, w, h, control) {
-        return this.entity_instance ??
-            (this.entity_instance = new this(n, w, h, control));
+        return (
+            this.entity_instance ??
+            (this.entity_instance = new this(n, w, h, control))
+        );
     }
 }
 

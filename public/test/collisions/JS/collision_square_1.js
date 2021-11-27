@@ -44,7 +44,7 @@ export class CollisionSquare1 extends Entity {
             this.square_str = this.changeTextString("No collision so far...");
         }
         this.drawSquare(this.x, this.y, this.square_colour);
-        this.drawText(this.x + 40, this.y - 30, this.square_str);
+        this.drawText(this.x + 40, this.y - 20, this.square_str);
     }
 }
 export default CollisionSquare1;

@@ -4,9 +4,6 @@ import Engine from "../Engine.js";
 const CANVAS_PREFIX_GAME_ID = "game-canvas";
 
 /** @private */
-const HTTPS_STATUS_OK = 200;
-
-/** @private */
 const entity_draw_text = {
     textRender: {
         x: [],
@@ -312,14 +309,15 @@ export class Entity extends Engine {
         // TODO: Investigate why ONLY when we call this method,
         // the drawSquare method doesn't apply correctly width
         // and height of the squares.
-        if (undefined == entity_draw_text.squareRender.width[entity_id]) {
-            entity_draw_text.squareRender.width[entity_id] = this.entity_width;
-            entity_draw_text.squareRender.height[entity_id] =
+        if (undefined == entity_draw_text.squareRender.width[entity_id.id]) {
+            entity_draw_text.squareRender.width[entity_id.id] =
+                this.entity_width;
+            entity_draw_text.squareRender.height[entity_id.id] =
                 this.entity_height;
         }
 
-        entity_draw_text.squareRender.colour[entity_id] = changeColourTo;
-        return entity_draw_text.squareRender.colour[entity_id];
+        entity_draw_text.squareRender.colour[entity_id.id] = changeColourTo;
+        return entity_draw_text.squareRender.colour[entity_id.id];
     }
 
     /**
@@ -418,9 +416,8 @@ export class Entity extends Engine {
     /** @public */
     changeTextString(string) {
         const entity_id = this.getEntityId();
-
-        entity_draw_text.textRender.texts[entity_id] = string;
-        return entity_draw_text.textRender.texts[entity_id];
+        entity_draw_text.textRender.texts[entity_id.id] = string;
+        return entity_draw_text.textRender.texts[entity_id.id];
     }
 
     /**

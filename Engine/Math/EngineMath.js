@@ -53,7 +53,7 @@ export class EngineMath {
      * @param {Number*} offset
      * @public
      */
-    wave(from, to, duration, offset = 0) {
+    wave(from, to, duration, offset = 1) {
         const _difference = (to - from) * 0.5;
         return (
             from +

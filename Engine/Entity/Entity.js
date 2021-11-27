@@ -61,11 +61,11 @@ export class Entity extends Engine {
 
         // Only allow creating entities using the getInstance
         // static method.
-        if (this.entity_instance == null) {
+        if (this.engine_utils.isNull(this.entity_instance)) {
             this.entity_instance = this;
         } else {
             console.error(
-                `Please do not create instances using the new keyword. Instead, use the getInstance singleton. (Entity name: ${entity_name})`
+                `Please do not create entities using the new keyword. Instead, use the getInstance singleton. (Entity name: ${entity_name})`
             );
             return;
         }
@@ -179,7 +179,7 @@ export class Entity extends Engine {
     gameLoop(current_time_render) {
         // Skip first frame render and
         // calculate delta time before entity render.
-        if (null == this.last_time_render) {
+        if (this.engine_utils.isNull(this.last_time_render)) {
             this.last_time_render = current_time_render;
             this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
         }
@@ -221,8 +221,8 @@ export class Entity extends Engine {
         // Remove every single property for square, image
         // or text. Since we don't know what the developer
         // has drawn, written, or set an image to.
-        if (list_of_entities[entity_id.id] != undefined) {
-
+        if (this.engine_utils.isUndefined(list_of_entities[entity_id.id])) {
+            
         }
     }
 
@@ -309,7 +309,7 @@ export class Entity extends Engine {
         // TODO: Investigate why ONLY when we call this method,
         // the drawSquare method doesn't apply correctly width
         // and height of the squares.
-        if (undefined == entity_draw_text.squareRender.width[entity_id.id]) {
+        if (this.engine_utils.isUndefined(entity_draw_text.squareRender.width[entity_id.id])) {
             entity_draw_text.squareRender.width[entity_id.id] =
                 this.entity_width;
             entity_draw_text.squareRender.height[entity_id.id] =
@@ -603,12 +603,16 @@ export class Entity extends Engine {
      * This is best use if you want to get the instance
      * of a player class (for example) without having to create
      * a new class instance altogether.
+     * @param {String} name Entity name
+     * @param {Number} width How wide the entity is (usually relevant when drawing squares)
+     * @param {Number} height How tall the entity is (usually relevant when drawing squares)
+     * @param {Array} entity_controls Set of controls for controlling this entity.
      * @public
      */
-    static getInstance(n, w, h, control) {
+    static getInstance(name, width, height, entity_controls) {
         return (
             this.entity_instance ??
-            (this.entity_instance = new this(n, w, h, control))
+            (this.entity_instance = new this(name, width, height, entity_controls))
         );
     }
 }

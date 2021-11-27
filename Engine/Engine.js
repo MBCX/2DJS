@@ -44,9 +44,6 @@ export class Engine {
         this.mouse_x = 0;
         this.mouse_y = 0;
 
-        /** @private */
-        this.last_time_render = -1;
-
         /** @readonly */
         this.engine_math = new EngineMath();
 

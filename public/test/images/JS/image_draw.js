@@ -8,16 +8,6 @@ export class TestImageDrawing extends Entity {
     /**
      * @override
      */
-    entityInit() {}
-
-    /**
-     * @override
-     */
-    entityStep() {}
-
-    /**
-     * @override
-     */
     entityDraw() {
         this.drawText(this.window_width / 2, 32, "Image rendering in 2DJS");
         this.drawImage(

@@ -5,7 +5,6 @@ export class Engine {
     constructor() {
         /**
          * REFERENCE: https://stackoverflow.com/questions/9847580/how-to-detect-safari-chrome-ie-firefox-and-opera-browser
-         * @typedef browser_type
          * @property {Boolean} Chrome
          * @property {Boolean} EdgeChromium
          * @property {Boolean} Firefox
@@ -19,7 +18,7 @@ export class Engine {
             EdgeChromium:
                 !!window.chrome &&
                 (!!window.chrome.webstore || !!window.chrome.runtime) &&
-                navigator.userAgent.indexOf("Edg") != -1,
+                navigator.userAgent.indexOf("Edg") !== -1,
             Firefox: typeof InstallTrigger !== "undefined",
             Safari:
                 /constructor/i.test(window.HTMLElement) ||

@@ -1,9 +1,9 @@
 import Engine from "../Engine.js";
-import { CANVAS_PREFIX_GAME_ID } from "../shared/shared_variables.js";
 
-/**
- * @private
- */
+/** @private */
+const CANVAS_PREFIX_GAME_ID = "game-canvas";
+
+/** @private */
 const entity_draw_text = {
     textRender: {
         x: [],
@@ -38,10 +38,10 @@ const entity_draw_text = {
 /** @private */
 let delta_time = null;
 
-/**
- * @private
- */
+/** @private */
 let entities_map = new Map();
+
+/** @private */
 let entity_id = 0;
 
 export class Entity extends Engine {
@@ -91,7 +91,7 @@ export class Entity extends Engine {
             img_object: {},
         };
 
-        this.init.bind(this)();
+        this.init();
         this.entityInit();
         console.log(entity_draw_text);
     }
@@ -214,9 +214,9 @@ export class Entity extends Engine {
     /**
      * @param {Number} x
      * @param {Number} y
-     * @param {Number*} width How wide you want it to be (in px).
-     * @param {Number*} height How tall you want it to be (in px).
-     * @param {String*} colour
+     * @param {Number} width How wide you want it to be (in px).
+     * @param {Number} height How tall you want it to be (in px).
+     * @param {String} colour
      * @public
      */
     drawSquare(
@@ -276,7 +276,7 @@ export class Entity extends Engine {
      * @param {Number} x Text position in screen pixels.
      * @param {Number} y Text position in screen pixels.
      * @param {String} text
-     * @param {Object*} styles
+     * @param {Object} styles
      * @public
      */
     drawText(

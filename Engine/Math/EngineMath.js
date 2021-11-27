@@ -1,3 +1,12 @@
+/**
+ * Magic number used as seed for the custom pseudo-random
+ * number generator. It comes from the following formula:
+ * 
+ * f(x) = 1 / 3^n. Where n is 4.
+ * @private
+ */
+const NUMBER_GENERATOR_SEED = 0.012345679012345678;
+
 export class EngineMath {
     /**
      * @param {Number} variable
@@ -45,7 +54,7 @@ export class EngineMath {
      * @public
      */
     wave(from, to, duration, offset = 0) {
-        let _difference = (to - from) * 0.5;
+        const _difference = (to - from) * 0.5;
         return (
             from +
             _difference +
@@ -73,6 +82,22 @@ export class EngineMath {
             if (first_value < second_value) return second_value;
         }
         return first_value;
+    }
+
+    /**
+     * A custom random pseudo-random number generator.
+     * @param {Number} randomNumberLimit Limit how far you want to generate numbers.
+     * @returns A sudo-random number with enough entropy.
+     */
+    generateRandomNumber(randomNumberLimit = 255)
+    {
+        // Use the current date and page performance as
+        // main source of entropy for better random
+        // generation.
+        const entropy = (
+            Date.now() + performance.now() / performance.timeOrigin
+        ) * NUMBER_GENERATOR_SEED;
+        return Math.floor(entropy * Math.random()) % randomNumberLimit;
     }
 }
 export default EngineMath;

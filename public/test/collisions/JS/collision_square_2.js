@@ -14,8 +14,6 @@ export class CollisionSquare2 extends Entity {
         this.x = 128;
         this.y = 256;
         this.has_collided = false;
-        this.square_colour = "";
-        this.square_str = "";
     }
 
     /**
@@ -29,21 +27,17 @@ export class CollisionSquare2 extends Entity {
             this.player_instance.y,
             this.entity_width - 15
         );
+
+        if (this.has_collided) {
+            this.entityDestroy();
+        }
     }
 
     /**
      * @override
      */
     entityDraw() {
-        if (this.has_collided) {
-            this.square_colour = this.changeSquareColour("#900000");
-            this.square_str = this.changeTextString("Collision detected!");
-        } else {
-            this.square_colour = this.changeSquareColour("#C6729D");
-            this.square_str = this.changeTextString("No collision so far...");
-        }
-        this.drawSquare(this.x, this.y, this.square_colour);
-        this.drawText(this.x + 40, this.y - 30, this.square_str);
+        this.drawSquare(this.x, this.y, "#083A9D");
     }
 }
 export default CollisionSquare2;

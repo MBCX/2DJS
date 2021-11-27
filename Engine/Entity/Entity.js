@@ -4,6 +4,9 @@ import Engine from "../Engine.js";
 const CANVAS_PREFIX_GAME_ID = "game-canvas";
 
 /** @private */
+const HTTPS_STATUS_OK = 200;
+
+/** @private */
 const entity_draw_text = {
     textRender: {
         x: [],
@@ -34,6 +37,9 @@ const entity_draw_text = {
         square_amount: 0,
     },
 };
+
+/** @private */
+const list_of_entities = [];
 
 /** @private */
 let delta_time = null;
@@ -80,7 +86,7 @@ export class Entity extends Engine {
             Array.isArray(controls),
             "Controls parameter for Entities must be an array."
         );
-
+        this.name = entity_name;
         this.entity_width = width;
         this.entity_height = height;
 
@@ -106,7 +112,8 @@ export class Entity extends Engine {
 
         this.init();
         this.entityInit();
-        console.log(entity_draw_text);
+        list_of_entities.push(this.entity_instance);
+        console.log(list_of_entities);
     }
 
     /** @public */
@@ -116,12 +123,12 @@ export class Entity extends Engine {
 
     /** @public */
     getEntityId() {
-        return entities_map.get(this.name);
+        return entities_map.get("entity_map");
     }
 
     /** @public */
     getAllEntities() {
-        return entities_map;
+        return list_of_entities;
     }
 
     /** @public */
@@ -150,7 +157,10 @@ export class Entity extends Engine {
      */
     init() {
         // Makes sure all entities have unique IDs.
-        entities_map.set(this.name, entity_id++);
+        entities_map.set("entity_map", {
+            id: entity_id++,
+            name: this.name,
+        });
 
         // Managing controlable entities.
         if (this.entity_controls.control_set.length > 0) {
@@ -208,7 +218,16 @@ export class Entity extends Engine {
     entityDraw() {}
 
     /** @public */
-    entityDestroy() {}
+    entityDestroy() {
+        const entity_id = this.getEntityId();
+
+        // Remove every single property for square, image
+        // or text. Since we don't know what the developer
+        // has drawn, written, or set an image to.
+        if (list_of_entities[entity_id.id] != undefined) {
+
+        }
+    }
 
     /**
      * REFERENCE: https://stackoverflow.com/questions/15661339/how-do-i-fix-blurry-text-in-my-html5-canvas
@@ -346,7 +365,7 @@ export class Entity extends Engine {
                 styles.fontSizeBase
             );
         }
-        
+
         // Go through all saved texts in the array,
         // and find the one that the developer wants
         // to edit.
@@ -413,7 +432,7 @@ export class Entity extends Engine {
      * @param {Number} y
      * @public
      */
-    drawImage(imageSrc, width, height, x, y) {
+    drawStaticImage(imageSrc, width, height, x, y) {
         const canvas = this.getCanvasEl().getContext("2d");
         let current_image_index = 0;
         this.entity_image.img_object = new Image(width, height);
@@ -462,7 +481,9 @@ export class Entity extends Engine {
         canvas.drawImage(
             entity_draw_text.imageRender.images_obj[current_image_index],
             entity_draw_text.imageRender.x[current_image_index],
-            entity_draw_text.imageRender.y[current_image_index]
+            entity_draw_text.imageRender.y[current_image_index],
+            entity_draw_text.imageRender.width[current_image_index],
+            entity_draw_text.imageRender.height[current_image_index]
         );
     }
 
@@ -513,7 +534,7 @@ export class Entity extends Engine {
         }
 
         for (let i = 0; entity_draw_text.imageRender.images.length > i; ++i) {
-            this.drawImage(
+            this.drawStaticImage(
                 entity_draw_text.imageRender.images[i],
                 entity_draw_text.imageRender.width[i],
                 entity_draw_text.imageRender.height[i],

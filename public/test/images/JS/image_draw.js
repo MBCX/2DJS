@@ -10,19 +10,26 @@ export class TestImageDrawing extends Entity {
      */
     entityDraw() {
         this.drawText(this.window_width / 2, 32, "Image rendering in 2DJS");
-        this.drawImage(
-            "./img/cursor_test_img.png",
+        this.drawStaticImage(
+            "./img/chemicalsister-character.gif",
+            400,
+            400,
             200,
-            200,
-            this.mouse_x,
-            this.mouse_y
+            200
         );
-        this.drawImage(
+        this.drawStaticImage(
             "./img/outline_javascript_black_48dp.png",
-            200,
-            200,
+            128,
+            128,
             this.window_width / 2,
             this.window_height / 2
+        );
+        this.drawStaticImage(
+            "./img/cursor_test_img.png",
+            24,
+            24,
+            this.mouse_x,
+            this.mouse_y
         );
     }
 }

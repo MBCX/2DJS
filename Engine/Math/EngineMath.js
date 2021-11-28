@@ -93,7 +93,7 @@ export class EngineMath {
      * @returns A sudo-random number with enough entropy.
      * @public
      */
-    randomNumber(randomNumberLimit = 255) {
+    randomNumber(randomNumberLimit = 0xFF) {
         // Use the current date and page performance as
         // main source of entropy for better random
         // generation.

@@ -88,17 +88,20 @@ export class EngineMath {
     }
 
     /**
-     * A custom random pseudo-random number generator.
+     * A custom pseudo-random number generator with better entropy.
+     * REFERENCE: https://svijaykoushik.github.io/blog/2019/10/04/three-awesome-ways-to-generate-random-number-in-javascript/
      * @param {Number} randomNumberLimit Limit how far you want to generate numbers.
      * @returns A sudo-random number with enough entropy.
      * @public
      */
-    randomNumber(randomNumberLimit = 0xFF) {
+    randomNumber(randomNumberLimit = 0xff) {
         // Use the current date and page performance as
         // main source of entropy for better random
         // generation.
         const entropy =
-            (Date.now() + performance.now() / performance.timeOrigin) *
+            (Date.now() +
+                performance.now() / performance.timeOrigin +
+                Math.PI) *
             NUMBER_GENERATOR_SEED;
         return Math.floor(entropy * Math.random()) % randomNumberLimit;
     }

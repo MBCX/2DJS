@@ -1,4 +1,4 @@
-import Engine from "../../../../Engine/Engine.js";
+import Engine from "../../../../../Engine/Engine.js";
 import TestTextDrawing from "./test_draw_text.js";
 
 // Initialise.

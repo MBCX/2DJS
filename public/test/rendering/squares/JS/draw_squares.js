@@ -1,4 +1,4 @@
-import Entity from "../../../../Engine/Entity/Entity.js";
+import Entity from "../../../../../Engine/Entity/Entity.js";
 
 export class TestDrawSquares extends Entity {
     constructor(entity_name, width, height) {
@@ -17,14 +17,14 @@ export class TestDrawSquares extends Entity {
         ];
         this.random_square_position = [
             [
-                this.engine_math.generateRandomNumber(this.window_width),
-                this.engine_math.generateRandomNumber(this.window_width),
-                this.engine_math.generateRandomNumber(this.window_width),
+                this.engine_math.randomNumber(this.window_width),
+                this.engine_math.randomNumber(this.window_width),
+                this.engine_math.randomNumber(this.window_width),
             ],
             [
-                this.engine_math.generateRandomNumber(this.window_height),
-                this.engine_math.generateRandomNumber(this.window_height),
-                this.engine_math.generateRandomNumber(this.window_height),
+                this.engine_math.randomNumber(this.window_height),
+                this.engine_math.randomNumber(this.window_height),
+                this.engine_math.randomNumber(this.window_height),
             ],
         ];
     }

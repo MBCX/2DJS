@@ -1,4 +1,4 @@
-import Engine from "../../../../Engine/Engine.js";
+import Engine from "../../../../../Engine/Engine.js";
 import TestImageDrawing from "./image_draw.js";
 
 new Engine().initialise(() => {

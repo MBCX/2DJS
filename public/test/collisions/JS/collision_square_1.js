@@ -38,10 +38,10 @@ export class CollisionSquare1 extends Entity {
         this.drawText(this.window_width / 2, 32, "Square collisions in 2DJS");
         if (this.has_collided) {
             this.square_colour = this.changeSquareColour("#CC0000");
-            this.square_str = this.changeTextString("Collision detected!");
+            this.square_str = "Collision detected!"
         } else {
             this.square_colour = this.changeSquareColour("#A54AEF");
-            this.square_str = this.changeTextString("No collision so far...");
+            this.square_str = "No collisions so far...";
         }
         this.drawSquare(this.x, this.y, this.square_colour);
         this.drawText(this.x + 40, this.y - 20, this.square_str);

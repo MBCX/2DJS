@@ -1,4 +1,4 @@
-import Entity from "../../../../Engine/Entity/Entity.js";
+import Entity from "../../../../../Engine/Entity/Entity.js";
 
 export class TestTextDrawing extends Entity {
     constructor(entity_name, width, height) {

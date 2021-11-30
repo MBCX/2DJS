@@ -15,7 +15,10 @@ const entity_drawing_database = {
         x: [],
         y: [],
         texts_properties: {
-            method_id: 0,
+            method_calls: {
+                entity_parent: [],
+                id: 0,
+            },
             texts: [],
         },
         properties: {
@@ -361,12 +364,23 @@ export class Entity extends Engine {
         }
     ) {
         const canvas = this.getCanvasEl().getContext("2d");
+        const method_id = entity_drawing_database.textRender.texts_properties.method_calls.id;
+        const entity_id = this.getEntityProperties();
+
+        // Save wich entity called this method.
+        for (let i = 0; list_of_entities.length > i; ++i)
+        {
+            if (!entity_drawing_database.textRender.texts_properties.method_calls.entity_parent.includes(list_of_entities[i])) {
+                entity_drawing_database.textRender.texts_properties.method_calls.entity_parent.push(list_of_entities[i]);
+                ++entity_drawing_database.textRender.texts_properties.method_calls.id;
+            }
+        }
 
         // Handle adding new strings to our entity database.
         if (
             this.engine_utils.isUndefined(
                 entity_drawing_database.textRender.texts_properties.texts[
-                    entity_drawing_database.textRender.texts_properties.method_id
+                    entity_drawing_database.textRender.texts_properties.method_calls.id
                 ]
             ) && !entity_drawing_database.textRender.texts_properties.texts.includes(text)
         ) {
@@ -380,12 +394,11 @@ export class Entity extends Engine {
                 entity_drawing_database.textRender.texts_properties.texts.push(text);
                 entity_drawing_database.textRender.x.push(x);
                 entity_drawing_database.textRender.y.push(y);
-                ++entity_drawing_database.textRender.texts_properties.method_id;
             }
         }
 
         // Handle number string inputs.
-        const text_id = this.getTextId(text);
+        const text_id = this.getTextId(text)[0];
         if (
             this.engine_utils.isUndefined(
                 entity_drawing_database.textRender.texts_properties.texts[text_id]
@@ -414,24 +427,15 @@ export class Entity extends Engine {
                     entity_drawing_database.textRender.texts_properties.texts[
                         number_text_id
                     ] = text;
-                } else if (this.engine_utils.isString(text)) {
+                } else {
                     // Get the last string and change it to the new string.
-                    let recent_string = entity_drawing_database.textRender.texts_properties.texts[
+                    entity_drawing_database.textRender.texts_properties.texts[
                         entity_drawing_database.textRender.texts_properties.texts.length - 1
-                    ];
-                    
-                    if (!entity_drawing_database.textRender.texts_properties.texts.includes(text)) {
-                        recent_string = text;
-                        entity_drawing_database.textRender.texts_properties
-                            .texts[
-                            entity_drawing_database.textRender.texts_properties
-                                .texts.length - 1
-                        ] = recent_string;
-                    }
+                    ] = text;
                 }
             }
         }
-
+        
         canvas.font = "system-ui";
         canvas.fillStyle = "black";
         canvas.textAlign = "center";
@@ -439,6 +443,7 @@ export class Entity extends Engine {
         // Set new values again if they ever change.
         entity_drawing_database.textRender.x[text_id] = x;
         entity_drawing_database.textRender.y[text_id] = y;
+        entity_drawing_database.textRender.texts_properties.texts[text_id] = text;
 
         canvas.fillText(
             entity_drawing_database.textRender.texts_properties.texts[text_id],
@@ -451,7 +456,6 @@ export class Entity extends Engine {
             ).width
         );
     }
-
     /** @private */
     getTextId(string) {
         for (
@@ -464,7 +468,7 @@ export class Entity extends Engine {
                 entity_drawing_database.textRender.texts_properties.texts[i] ===
                 string
             ) {
-                return i;
+                return [i, list_of_entities[i]];
             }
         }
         return undefined;

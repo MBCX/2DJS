@@ -366,32 +366,21 @@ export class Entity extends Engine {
         if (
             this.engine_utils.isUndefined(
                 entity_drawing_database.textRender.texts_properties.texts[
-                    entity_drawing_database.textRender.texts_properties
-                        .method_id
+                    entity_drawing_database.textRender.texts_properties.method_id
                 ]
-            ) &&
-            !entity_drawing_database.textRender.texts_properties.texts.includes(
-                text
-            )
+            ) && !entity_drawing_database.textRender.texts_properties.texts.includes(text)
         ) {
             // Numbers will be handled differently compared to
             // strings.
             if (this.engine_utils.isNumber(text)) {
-                entity_drawing_database.textRender.texts_properties.texts.push(
-                    text
-                );
+                entity_drawing_database.textRender.texts_properties.texts.push(text);
                 entity_drawing_database.textRender.x.push(x);
                 entity_drawing_database.textRender.y.push(y);
-                console.log(
-                    entity_drawing_database.textRender.texts_properties
-                );
             } else {
-                ++entity_drawing_database.textRender.texts_properties.method_id;
-                entity_drawing_database.textRender.texts_properties.texts.push(
-                    text
-                );
+                entity_drawing_database.textRender.texts_properties.texts.push(text);
                 entity_drawing_database.textRender.x.push(x);
                 entity_drawing_database.textRender.y.push(y);
+                ++entity_drawing_database.textRender.texts_properties.method_id;
             }
         }
 
@@ -399,9 +388,7 @@ export class Entity extends Engine {
         const text_id = this.getTextId(text);
         if (
             this.engine_utils.isUndefined(
-                entity_drawing_database.textRender.texts_properties.texts[
-                    text_id
-                ]
+                entity_drawing_database.textRender.texts_properties.texts[text_id]
             )
         ) {
             // Search through all our stored text in our database,
@@ -418,8 +405,7 @@ export class Entity extends Engine {
                     this.engine_utils.isNumber(
                         entity_drawing_database.textRender.texts_properties
                             .texts[i]
-                    ) &&
-                    entity_drawing_database.textRender.texts_properties.texts[i] === text
+                    )
                 ) {
                     const number_text_id = this.getTextId(
                         entity_drawing_database.textRender.texts_properties
@@ -428,9 +414,20 @@ export class Entity extends Engine {
                     entity_drawing_database.textRender.texts_properties.texts[
                         number_text_id
                     ] = text;
-                    console.log(
+                } else if (this.engine_utils.isString(text)) {
+                    // Get the last string and change it to the new string.
+                    let recent_string = entity_drawing_database.textRender.texts_properties.texts[
+                        entity_drawing_database.textRender.texts_properties.texts.length - 1
+                    ];
+                    
+                    if (!entity_drawing_database.textRender.texts_properties.texts.includes(text)) {
+                        recent_string = text;
                         entity_drawing_database.textRender.texts_properties
-                    );
+                            .texts[
+                            entity_drawing_database.textRender.texts_properties
+                                .texts.length - 1
+                        ] = recent_string;
+                    }
                 }
             }
         }

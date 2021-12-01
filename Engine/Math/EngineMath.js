@@ -98,14 +98,6 @@ export class EngineMath {
      * @public
      */
     randomNumber(randomNumberLimit = 0xff) {
-        const changeSeed = () =>
-        {
-            // Uses the following formula:
-            // f(x) = (2 * x - 1) / (3 * x + 3)
-            generator_seed = (2 * generator_seed - 1) + (3 * generator_seed + 3);
-            return generator_seed;
-        }
-
         // Use the current date and page performance as
         // main source of entropy for better random
         // generation.
@@ -114,6 +106,14 @@ export class EngineMath {
             performance.now() / performance.timeOrigin +
             Math.PI
         ) - MAGIC_NUMBER);
+
+        const changeSeed = () =>
+        {
+            // Uses the following formula:
+            // f(x) = (2 * x - 1) / (3 * x + 3)
+            generator_seed = generator_seed - Math.floor(entropy / Math.sin(Date.now()));
+            return Math.abs(generator_seed);
+        }
         return Math.floor(entropy * changeSeed()) % randomNumberLimit;
     }
 

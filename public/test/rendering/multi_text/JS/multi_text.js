@@ -21,6 +21,7 @@ export class MultiTextRender extends Entity {
         setInterval(this.generatorTimeout.bind(this), 1000);
     }
 
+    /** @private */
     generatorTimeout() {
         this.random_number = this.engine_math.randomNumber();
         this.random_text_index = this.engine_math.randomNumber(

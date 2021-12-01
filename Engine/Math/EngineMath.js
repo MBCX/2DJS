@@ -3,11 +3,14 @@
  * number generator. It comes from the following formula:
  *
  * f(x) = 1 / 3^n. Where n is 4.
+ * (Original value is 0.012345679012345678)
  * @private
  */
-const NUMBER_GENERATOR_SEED = 0.012345679012345678;
+const MAGIC_NUMBER = 123456790;
+let generator_seed = MAGIC_NUMBER;
 
 export class EngineMath {
+    
     /**
      * @param {Number} variable
      * @param {Number} min
@@ -95,15 +98,23 @@ export class EngineMath {
      * @public
      */
     randomNumber(randomNumberLimit = 0xff) {
+        const changeSeed = () =>
+        {
+            // Uses the following formula:
+            // f(x) = (2 * x - 1) / (3 * x + 3)
+            generator_seed = (2 * generator_seed - 1) + (3 * generator_seed + 3);
+            return generator_seed;
+        }
+
         // Use the current date and page performance as
         // main source of entropy for better random
         // generation.
-        const entropy =
-            (Date.now() +
-                performance.now() / performance.timeOrigin +
-                Math.PI) *
-            NUMBER_GENERATOR_SEED;
-        return Math.floor(entropy * Math.random()) % randomNumberLimit;
+        const entropy = Math.abs((
+            Date.now() +
+            performance.now() / performance.timeOrigin +
+            Math.PI
+        ) - MAGIC_NUMBER);
+        return Math.floor(entropy * changeSeed()) % randomNumberLimit;
     }
 
     /**

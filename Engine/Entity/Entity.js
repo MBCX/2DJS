@@ -17,7 +17,7 @@ const entity_drawing_database = {
         texts_properties: {
             method_calls: {
                 entity_parent: [],
-                id: 0,
+                id: [],
             },
             texts: [],
         },
@@ -235,12 +235,12 @@ export class Entity extends Engine {
 
     /** @public */
     entityDestroy() {
-        const entity_id = this.getEntityProperties();
+        const entity_properties = this.getEntityProperties();
 
         // Remove every single property for square, image
         // or text. Since we don't know what the developer
         // has drawn, written, or set an image to.
-        if (this.engine_utils.isUndefined(list_of_entities[entity_id.id])) {
+        if (this.engine_utils.isUndefined(list_of_entities[entity_properties.id])) {
         }
     }
 
@@ -323,25 +323,25 @@ export class Entity extends Engine {
 
     /** @public */
     changeSquareColour(changeColourTo) {
-        const entity_id = this.getEntityProperties();
+        const entity_properties = this.getEntityProperties();
 
         // TODO: Investigate why ONLY when we call this method,
         // the drawSquare method doesn't apply correctly width
         // and height of the squares.
         if (
             this.engine_utils.isUndefined(
-                entity_drawing_database.squareRender.width[entity_id.id]
+                entity_drawing_database.squareRender.width[entity_properties.id]
             )
         ) {
-            entity_drawing_database.squareRender.width[entity_id.id] =
+            entity_drawing_database.squareRender.width[entity_properties.id] =
                 this.entity_width;
-            entity_drawing_database.squareRender.height[entity_id.id] =
+            entity_drawing_database.squareRender.height[entity_properties.id] =
                 this.entity_height;
         }
 
-        entity_drawing_database.squareRender.colour[entity_id.id] =
+        entity_drawing_database.squareRender.colour[entity_properties.id] =
             changeColourTo;
-        return entity_drawing_database.squareRender.colour[entity_id.id];
+        return entity_drawing_database.squareRender.colour[entity_properties.id];
     }
 
     /**
@@ -364,113 +364,66 @@ export class Entity extends Engine {
         }
     ) {
         const canvas = this.getCanvasEl().getContext("2d");
-        const method_id = entity_drawing_database.textRender.texts_properties.method_calls.id;
-        const entity_id = this.getEntityProperties();
+        const entity_properties = this.getEntityProperties();
+        const text_id = this.getTextId(text);
+        
+        function drawTextToCanvas()
+        {
+            canvas.textAlign = "center";
+            canvas.fillText(
+                entity_drawing_database.textRender.texts_properties.texts[text_id],
+                entity_drawing_database.textRender.x[text_id],
+                entity_drawing_database.textRender.y[text_id],
+                canvas.measureText(entity_drawing_database.textRender.texts_properties.texts[text_id]).width
+            );
+        }
 
-        // Save wich entity called this method.
+        function addTextToDatabase()
+        {
+            // Add the new text string to our database.
+            entity_drawing_database.textRender.texts_properties.texts.push(text);
+            entity_drawing_database.textRender.x.push(x);
+            entity_drawing_database.textRender.y.push(y);
+        }
+
+        // Save the entity who has called this method.
         for (let i = 0; list_of_entities.length > i; ++i)
         {
             if (!entity_drawing_database.textRender.texts_properties.method_calls.entity_parent.includes(list_of_entities[i])) {
                 entity_drawing_database.textRender.texts_properties.method_calls.entity_parent.push(list_of_entities[i]);
-                ++entity_drawing_database.textRender.texts_properties.method_calls.id;
+                entity_drawing_database.textRender.texts_properties.method_calls.id.push(i - 1);
+                ++entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id];
             }
         }
 
-        // Handle adding new strings to our entity database.
-        if (
-            this.engine_utils.isUndefined(
-                entity_drawing_database.textRender.texts_properties.texts[
-                    entity_drawing_database.textRender.texts_properties.method_calls.id
-                ]
-            ) && !entity_drawing_database.textRender.texts_properties.texts.includes(text)
-        ) {
-            // Numbers will be handled differently compared to
-            // strings.
-            if (this.engine_utils.isNumber(text)) {
-                entity_drawing_database.textRender.texts_properties.texts.push(text);
-                entity_drawing_database.textRender.x.push(x);
-                entity_drawing_database.textRender.y.push(y);
+        // If the amount of text we've drawn is different,
+        // then this means this method was called again.
+        if (entity_drawing_database.textRender.texts_properties.texts.length !== entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id]) {
+            ++entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id];
+        } else {
+            // Draw the text to the screen.
+            if (!this.engine_utils.isUndefined(text_id)) {
+                entity_drawing_database.textRender.texts_properties.texts[text_id] = text;
+                entity_drawing_database.textRender.x[text_id] = x;
+                entity_drawing_database.textRender.y[text_id] = y;
+                drawTextToCanvas(text_id);
+                return;
             } else {
-                entity_drawing_database.textRender.texts_properties.texts.push(text);
-                entity_drawing_database.textRender.x.push(x);
-                entity_drawing_database.textRender.y.push(y);
+                addTextToDatabase();
             }
         }
-
-        // Handle number string inputs.
-        const text_id = this.getTextId(text)[0];
-        if (
-            this.engine_utils.isUndefined(
-                entity_drawing_database.textRender.texts_properties.texts[text_id]
-            )
-        ) {
-            // Search through all our stored text in our database,
-            // if you find it is a number, verify that's the number
-            // that the developer requested (in the text parameter).
-            // If it is, find its index and change its value.
-            for (
-                let i = 0;
-                entity_drawing_database.textRender.texts_properties.texts
-                    .length > i;
-                ++i
-            ) {
-                if (
-                    this.engine_utils.isNumber(
-                        entity_drawing_database.textRender.texts_properties
-                            .texts[i]
-                    )
-                ) {
-                    const number_text_id = this.getTextId(
-                        entity_drawing_database.textRender.texts_properties
-                            .texts[i]
-                    );
-                    entity_drawing_database.textRender.texts_properties.texts[
-                        number_text_id
-                    ] = text;
-                } else {
-                    // Get the last string and change it to the new string.
-                    entity_drawing_database.textRender.texts_properties.texts[
-                        entity_drawing_database.textRender.texts_properties.texts.length - 1
-                    ] = text;
-                }
-            }
-        }
-        
-        canvas.font = "system-ui";
-        canvas.fillStyle = "black";
-        canvas.textAlign = "center";
-
-        // Set new values again if they ever change.
-        entity_drawing_database.textRender.x[text_id] = x;
-        entity_drawing_database.textRender.y[text_id] = y;
-        entity_drawing_database.textRender.texts_properties.texts[text_id] = text;
-
-        canvas.fillText(
-            entity_drawing_database.textRender.texts_properties.texts[text_id],
-            entity_drawing_database.textRender.x[text_id],
-            entity_drawing_database.textRender.y[text_id],
-            canvas.measureText(
-                entity_drawing_database.textRender.texts_properties.texts[
-                    text_id
-                ]
-            ).width
-        );
     }
+
     /** @private */
     getTextId(string) {
-        for (
-            let i = 0;
-            entity_drawing_database.textRender.texts_properties.texts.length >
-            i;
-            ++i
-        ) {
-            if (
-                entity_drawing_database.textRender.texts_properties.texts[i] ===
-                string
-            ) {
-                return [i, list_of_entities[i]];
+        for (let i = 0; entity_drawing_database.textRender.texts_properties.texts.length > i; ++i) {
+            if (entity_drawing_database.textRender.texts_properties.texts[i] === string) {
+                return i;
             }
         }
+
+        // TODO: Should return an error if it can't
+        // find the text.
         return undefined;
     }
 

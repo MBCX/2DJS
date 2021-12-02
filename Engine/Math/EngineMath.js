@@ -92,7 +92,6 @@ export class EngineMath {
 
     /**
      * A custom pseudo-random number generator with better entropy.
-     * REFERENCE: https://svijaykoushik.github.io/blog/2019/10/04/three-awesome-ways-to-generate-random-number-in-javascript/
      * @param {Number} randomNumberLimit Limit how far you want to generate numbers.
      * @returns A sudo-random number with enough entropy.
      * @public
@@ -109,8 +108,8 @@ export class EngineMath {
 
         const changeSeed = () =>
         {
-            // Uses the following formula:
-            // f(x) = (2 * x - 1) / (3 * x + 3)
+            // Use Math.sin as extra noise for the seed
+            // combined with our entropy.
             generator_seed = generator_seed - Math.floor(entropy / Math.sin(Date.now()));
             return Math.abs(generator_seed);
         }

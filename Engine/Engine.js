@@ -134,6 +134,8 @@ export class Engine {
             window.mozRequestAnimationFrame(callback);
         } else if ("msRequestAnimationFrame" in window) {
             window.msRequestAnimationFrame(callback);
+        } else if ("oRequestAnimationFrame" in window) {
+            window.oRequestAnimationFrame(callback);
         } else {
             return setTimeout(callback, 1000 / 60);
         }
@@ -147,6 +149,8 @@ export class Engine {
             window.mozCancelAnimationFrame(callback);
         } else if ("msCancelAnimationFrame" in window) {
             window.msCancelAnimationFrame(callback);
+        } else if ("oCancelAnimationFrame" in window) {
+            window.oCancelAnimationFrame(callback);
         } else {
             return clearTimeout(callback);
         }

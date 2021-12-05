@@ -63,6 +63,36 @@ let entities_map = new Map();
  */
 let entity_id = 0;
 
+/**
+ * This hold the (now deprecated) number of the key the player
+ * presses. This is used primary by the PRNG algorithim.
+ * @public
+ */
+let key_code = 0;
+
+
+// Util functions for working with the
+// database
+function isTextInsideTheDatabase(value) {
+    return entity_drawing_database.textRender.texts_properties.texts.includes(value);
+}
+
+function isTextLengthGreaterThan(value) {
+    return entity_drawing_database.textRender.texts_properties.texts.length > value;
+}
+
+function isTextLengthEqualTo(value) {
+    return entity_drawing_database.textRender.texts_properties.texts.length === value;
+}
+
+function isTextLengthLessThan(value) {
+    return entity_drawing_database.textRender.texts_properties.texts.length < value;
+}
+
+function getTextLength() {
+    return entity_drawing_database.textRender.texts_properties.texts.length;
+}
+
 export class Entity extends Engine {
     static entity_width = 0;
     static entity_height = 0;
@@ -380,10 +410,22 @@ export class Entity extends Engine {
 
         function addTextToDatabase()
         {
+            // This tiny function will return true if 
+            // we can add more texts to the database.
+            if (isTextInsideTheDatabase(text)) {
+                entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id] = getTextLength();
+            } else {
+                entity_drawing_database.textRender.texts_properties.texts.push(text);
+                entity_drawing_database.textRender.x.push(x);
+                entity_drawing_database.textRender.y.push(y);
+            }
+            
             // Add the new text string to our database.
-            entity_drawing_database.textRender.texts_properties.texts.push(text);
-            entity_drawing_database.textRender.x.push(x);
-            entity_drawing_database.textRender.y.push(y);
+            if (isTextLengthLessThan(entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id])) {
+                entity_drawing_database.textRender.texts_properties.texts.push(text);
+                entity_drawing_database.textRender.x.push(x);
+                entity_drawing_database.textRender.y.push(y);
+            }
         }
 
         // Save the entity who has called this method.
@@ -391,26 +433,20 @@ export class Entity extends Engine {
         {
             if (!entity_drawing_database.textRender.texts_properties.method_calls.entity_parent.includes(list_of_entities[i])) {
                 entity_drawing_database.textRender.texts_properties.method_calls.entity_parent.push(list_of_entities[i]);
-                entity_drawing_database.textRender.texts_properties.method_calls.id.push(i - 1);
-                ++entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id];
+                entity_drawing_database.textRender.texts_properties.method_calls.id.push(i);
             }
         }
 
         // If the amount of text we've drawn is different,
         // then this means this method was called again.
-        if (entity_drawing_database.textRender.texts_properties.texts.length !== entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id]) {
-            ++entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id];
+        // Draw the text to the screen.
+        if (this.engine_utils.isUndefined(text_id)) {
+            addTextToDatabase();
         } else {
-            // Draw the text to the screen.
-            if (!this.engine_utils.isUndefined(text_id)) {
-                entity_drawing_database.textRender.texts_properties.texts[text_id] = text;
-                entity_drawing_database.textRender.x[text_id] = x;
-                entity_drawing_database.textRender.y[text_id] = y;
-                drawTextToCanvas(text_id);
-                return;
-            } else {
-                addTextToDatabase();
-            }
+            entity_drawing_database.textRender.texts_properties.texts[text_id] = text;
+            entity_drawing_database.textRender.x[text_id] = x;
+            entity_drawing_database.textRender.y[text_id] = y;
+            drawTextToCanvas(text_id);
         }
     }
 
@@ -563,6 +599,8 @@ export class Entity extends Engine {
      */
     setKeyPressed(e) {
         let index = this.findRequestedKeyIndex(e.key);
+        key_code = e.keyCode;
+
         if (this.entity_controls.control_set[index]) {
             this.entity_controls.is_pressed[index] = true;
             return;

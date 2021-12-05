@@ -11,15 +11,13 @@ export class TestTextDrawing extends Entity {
     entityInit() {
         this.wrap_text_x = 0;
         this.wave_text_y = 0;
-        this.rotate_text = 0;
     }
 
     /**
      * @override
      */
     entityStep() {
-        this.wrap_text_x += 2;
-        this.rotate_text += 1 / this.getDeltaTime();
+        this.wrap_text_x += 0.25 * this.getDeltaTime();
 
         this.wave_text_y = this.engine_math.wave(64, this.window_height / 2, 2);
         this.wrap_text_x = this.engine_math.wrap(

@@ -71,8 +71,8 @@ export class Engine {
         document.addEventListener(
             "DOMContentLoaded",
             () => {
-                functionAfterInitialisation();
                 this.runInit();
+                functionAfterInitialisation();
             },
             { once: true }
         );
@@ -101,7 +101,7 @@ export class Engine {
 
     /**
      * Returns an array where index 0 is width and index 1 is height.
-     * @public
+     * @private
      */
     getScreenWidthHeightArray() {
         // Chrome handle screen values differently.

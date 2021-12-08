@@ -226,20 +226,16 @@ export class Entity extends Engine {
      * @override
      */
     gameLoop(current_time_render) {
-        // Skip first frame render and
-        // calculate delta time before entity render.
-        if (this.engine_utils.isNull(this.last_time_render)) {
-            this.last_time_render = current_time_render;
-            this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
+        // Only begin game rendering if we have a last
+        // time to compare our delta against.
+        if (null != this.last_time_render) {
+            delta_time = current_time_render - this.last_time_render;
+            this.entityStep();
+            this.entityDraw();
+            this.setCanvasProperties();
+            this.renderCanvasAgain();
         }
-        delta_time = current_time_render - this.last_time_render;
         this.last_time_render = current_time_render;
-
-        this.entityStep();
-        this.entityDraw();
-        this.setCanvasProperties();
-        this.renderCanvasAgain();
-
         this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
     }
 
@@ -250,8 +246,8 @@ export class Entity extends Engine {
 
     /** @override */
     runInit() {
-        this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
         this.entityInit();
+        this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
     }
 
     /** @public */

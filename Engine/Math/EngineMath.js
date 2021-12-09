@@ -104,52 +104,25 @@ export class EngineMath {
             Math.PI
         ) - MAGIC_NUMBER);
 
-        // How the algorithim works:
-        // First we take our current date (from unix time)
-        // and multiply it by 0.001. This will create decimal 
-        // places and will better serve as a 
-        // "ever constantly changing initial seed".
-        //
-        // Then, we get a number by combining the requested 
-        // number limit, the current date, and the time amount 
-        // since the page started and divide it by 1000. 
-        // This creates a fix number that rarely changes.
-        //
-        // Now,
-        // to create the noise for the seed, we use our "wave"
-        // method to simulate a "gauss" distribution. Then for 
-        // the first argument of the method, the requested number
-        // limit is used as the lowest point of the distribution.
-        //
-        // Then we combine the current date, the main
-        // entropy and our fix number and we mod it by 242.
-        // This last one makes sure it wraps between 0 and 242.
-        // Same for the last argument that has the main entropy
-        // mod by 250. 242 and 250 we're chosen because they
-        // produce the most stable distribution of noise for our needs.
-        // Lower numbers can be even more stable, but may not
-        // have as much of in terms of number range.
-        //
-        // And lastly, to change the actual seed, we sum
-        // it with the noise, reduce it by our combined
-        // number, multiply it by our current date minus
-        // the actual date, and we then add back the noise.
         const changeSeed = () =>
         {
-            const _current_date = Date.now() * 0.001;
+            const date = new Date();
+            const _current_date_seed = date.getSeconds();
             const _current_performance = Math.floor(performance.now() / 1000);
             const _combined_number = this.combined_numbers_between(
                 randomNumberLimit,
-                _current_date,
+                _current_date_seed,
                 _current_performance
             );
             const _noise = this.wave(
+              date.getMinutes() * Math.PI,
+              (_current_date_seed + main_entropy + _combined_number) %
                 randomNumberLimit,
-                ((_current_date + main_entropy) + _combined_number) % 242,
-                main_entropy % 250
+              main_entropy % randomNumberLimit
             );
-            generator_seed = generator_seed + (_noise - (_combined_number * (_current_date - Date.now()) + _noise))
+            generator_seed = generator_seed + (_noise - (_combined_number * _current_date_seed) + _noise)
 
+            console.log(generator_seed)
             return generator_seed;
         }
         return Math.floor(main_entropy * changeSeed()) % randomNumberLimit;

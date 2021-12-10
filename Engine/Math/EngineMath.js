@@ -7,7 +7,7 @@
  * @private
  */
 const MAGIC_NUMBER = 123456790;
-let generator_seed = MAGIC_NUMBER;
+let number_seed = MAGIC_NUMBER;
 
 export class EngineMath {
     
@@ -120,10 +120,9 @@ export class EngineMath {
                 randomNumberLimit,
               main_entropy % randomNumberLimit
             );
-            generator_seed = generator_seed + (_noise - (_combined_number * _current_date_seed) + _noise)
-
-            console.log(generator_seed)
-            return generator_seed;
+            number_seed = number_seed + ((_combined_number * _current_date_seed) + _noise)
+            console.log(number_seed);
+            return number_seed;
         }
         return Math.floor(main_entropy * changeSeed()) % randomNumberLimit;
     }
@@ -152,7 +151,13 @@ export class EngineMath {
      * @public
      */
     randomNumberBetween(min, max) {
-        return this.randomNumber(max - min + 1);
+        // This handles the edge case where the developer
+        // might have the min number be larger than the
+        // max number. i.e, (-10, 0)
+        if (min < max) {
+            return this.randomNumber(max - min) + min;
+        }
+        return this.randomNumber(min + max) + max;
     }
 }
 export default EngineMath;

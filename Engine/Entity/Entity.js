@@ -63,14 +63,6 @@ let entities_map = new Map();
  */
 let entity_id = 0;
 
-/**
- * This hold the (now deprecated) number of the key the player
- * presses. This is used primary by the PRNG algorithim.
- * @public
- */
-let key_code = 0;
-
-
 // Util functions for working with the
 // database
 function isTextInsideTheDatabase(value) {
@@ -91,6 +83,10 @@ function isTextLengthLessThan(value) {
 
 function getTextLength() {
     return entity_drawing_database.textRender.texts_properties.texts.length;
+}
+
+function addTextToDatabase(text) {
+    entity_drawing_database.textRender.texts_properties.texts.push(text);
 }
 
 export class Entity extends Engine {
@@ -393,7 +389,7 @@ export class Entity extends Engine {
         const entity_properties = this.getEntityProperties();
         const text_id = this.getTextId(text);
         
-        function drawTextToCanvas()
+        const drawToCanvas = () =>
         {
             canvas.textAlign = "center";
             canvas.fillText(
@@ -404,23 +400,11 @@ export class Entity extends Engine {
             );
         }
 
-        function addTextToDatabase()
+        const add = () =>
         {
-            // This tiny function will return true if 
-            // we can add more texts to the database.
-            if (isTextInsideTheDatabase(text)) {
-                entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id] = getTextLength();
-            } else {
-                entity_drawing_database.textRender.texts_properties.texts.push(text);
-                entity_drawing_database.textRender.x.push(x);
-                entity_drawing_database.textRender.y.push(y);
-            }
-            
-            // Add the new text string to our database.
-            if (isTextLengthLessThan(entity_drawing_database.textRender.texts_properties.method_calls.id[entity_properties.id])) {
-                entity_drawing_database.textRender.texts_properties.texts.push(text);
-                entity_drawing_database.textRender.x.push(x);
-                entity_drawing_database.textRender.y.push(y);
+            if (this.engine_utils.isUndefined(entity_drawing_database.textRender.texts_properties.texts[text_id]))
+            {
+                addTextToDatabase(text);
             }
         }
 
@@ -437,12 +421,12 @@ export class Entity extends Engine {
         // then this means this method was called again.
         // Draw the text to the screen.
         if (this.engine_utils.isUndefined(text_id)) {
-            addTextToDatabase();
+            add();
         } else {
             entity_drawing_database.textRender.texts_properties.texts[text_id] = text;
             entity_drawing_database.textRender.x[text_id] = x;
             entity_drawing_database.textRender.y[text_id] = y;
-            drawTextToCanvas(text_id);
+            drawToCanvas(text_id);
         }
     }
 

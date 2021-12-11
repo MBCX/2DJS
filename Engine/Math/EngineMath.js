@@ -115,13 +115,14 @@ export class EngineMath {
                 _current_performance
             );
             const _noise = this.wave(
-              date.getMinutes() * Math.PI,
+                (date.getMinutes() === 0) ?
+                    1 * Math.PI :
+                    date.getMinutes() * Math.PI,
               (_current_date_seed + main_entropy + _combined_number) %
                 randomNumberLimit,
               main_entropy % randomNumberLimit
             );
-            number_seed = number_seed + ((_combined_number * _current_date_seed) + _noise)
-            console.log(number_seed);
+            number_seed = number_seed + ((_combined_number * _current_date_seed) / _noise);
             return number_seed;
         }
         return Math.floor(main_entropy * changeSeed()) % randomNumberLimit;

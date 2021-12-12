@@ -65,28 +65,19 @@ let entity_id = 0;
 
 // Util functions for working with the
 // database
-function isTextInsideTheDatabase(value) {
-    return entity_drawing_database.textRender.texts_properties.texts.includes(value);
-}
-
-function isTextLengthGreaterThan(value) {
-    return entity_drawing_database.textRender.texts_properties.texts.length > value;
-}
-
-function isTextLengthEqualTo(value) {
-    return entity_drawing_database.textRender.texts_properties.texts.length === value;
-}
-
-function isTextLengthLessThan(value) {
-    return entity_drawing_database.textRender.texts_properties.texts.length < value;
-}
-
 function getTextLength() {
     return entity_drawing_database.textRender.texts_properties.texts.length;
 }
 
 function addTextToDatabase(text) {
     entity_drawing_database.textRender.texts_properties.texts.push(text);
+}
+
+function isIncluded(value, type = '') {
+    if ("string" == typeof type) {
+        return entity_drawing_database.textRender.texts_properties.texts.includes(value);
+    }
+    return entity_drawing_database.textRender.x.includes(value);
 }
 
 export class Entity extends Engine {
@@ -388,25 +379,22 @@ export class Entity extends Engine {
         const canvas = this.getCanvasEl().getContext("2d");
         const entity_properties = this.getEntityProperties();
         const text_id = this.getTextId(text);
-        
-        const drawToCanvas = () =>
-        {
+
+        const drawToCanvas = (id) => {
             canvas.textAlign = "center";
             canvas.fillText(
-                entity_drawing_database.textRender.texts_properties.texts[text_id],
-                entity_drawing_database.textRender.x[text_id],
-                entity_drawing_database.textRender.y[text_id],
-                canvas.measureText(entity_drawing_database.textRender.texts_properties.texts[text_id]).width
+                entity_drawing_database.textRender.texts_properties.texts[id],
+                entity_drawing_database.textRender.x[id],
+                entity_drawing_database.textRender.y[id],
+                canvas.measureText(entity_drawing_database.textRender.texts_properties.texts[id]).width
             );
-        }
-
-        const add = () =>
-        {
-            if (this.engine_utils.isUndefined(entity_drawing_database.textRender.texts_properties.texts[text_id]))
-            {
-                addTextToDatabase(text);
-            }
-        }
+        };
+        
+        const setTextProps = (id) => {
+            entity_drawing_database.textRender.texts_properties.texts[id] = text;
+            entity_drawing_database.textRender.x[id] = x;
+            entity_drawing_database.textRender.y[id] = y;
+        };
 
         // Save the entity who has called this method.
         for (let i = 0; list_of_entities.length > i; ++i)
@@ -417,17 +405,25 @@ export class Entity extends Engine {
             }
         }
 
-        // If the amount of text we've drawn is different,
-        // then this means this method was called again.
-        // Draw the text to the screen.
-        if (this.engine_utils.isUndefined(text_id)) {
-            add();
+        if (!isIncluded(text)) {
+            for (let i = 0, l = getTextLength(); l > i; ++i) {
+                if (typeof i == typeof text) {
+                    setTextProps(i);
+                    return;
+                } else if (
+                    typeof text == "string" &&
+                    typeof this.getTextString(i) == "string"
+                ) {
+                    setTextProps(l);
+                    return;
+                }
+                break;
+            }
+            addTextToDatabase(text);
         } else {
-            entity_drawing_database.textRender.texts_properties.texts[text_id] = text;
-            entity_drawing_database.textRender.x[text_id] = x;
-            entity_drawing_database.textRender.y[text_id] = y;
-            drawToCanvas(text_id);
+            setTextProps(text_id);
         }
+        drawToCanvas(text_id);
     }
 
     /** @private */
@@ -441,6 +437,11 @@ export class Entity extends Engine {
         // TODO: Should return an error if it can't
         // find the text.
         return undefined;
+    }
+
+    /** @private */
+    getTextString(id) {
+        return entity_drawing_database.textRender.texts_properties.texts[id];
     }
 
     /**

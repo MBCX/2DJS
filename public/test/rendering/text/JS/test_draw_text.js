@@ -9,19 +9,16 @@ export class TestTextDrawing extends Entity {
      * @override
      */
     entityInit() {
-        this.wrap_text_x = 0;
-        this.wave_text_y = 0;
+        this.move_text_x = 0;
     }
 
     /**
      * @override
      */
     entityStep() {
-        this.wrap_text_x += 0.25 * this.getDeltaTime();
-
-        this.wave_text_y = this.engine_math.wave(64, this.window_height / 2, 2);
-        this.wrap_text_x = this.engine_math.wrap(
-            this.wrap_text_x,
+        this.move_text_x += 0.25 * this.getDeltaTime();
+        this.move_text_x = this.engine_math.wrap(
+            this.move_text_x,
             -60,
             this.window_width + 60
         );
@@ -35,16 +32,29 @@ export class TestTextDrawing extends Entity {
             this.window_width / 2,
             32,
             "Text rendering in 2DJS"
-        )
+        );
         this.drawText(
-            this.wrap_text_x,
+            this.window_width / 2,
+            64,
+            "All text can be independently manipulated."
+        )
+        
+        this.drawText(
+            this.move_text_x,
             this.window_height / 2,
             "This text is independent"
         );
+        
         this.drawText(
             128,
-            this.wave_text_y + 64,
-            "This one is also independent!!!"
+            this.engine_math.wave(64, this.window_height / 2, 2) + 64,
+            "The wave function is so much fun!!!"
+        );
+
+        this.drawText(
+            this.engine_math.cos(performance.now() / 100) * 12 + 256,
+            this.window_height / 2 + 30,
+            "Not as much as the cosine!!!"
         );
 
         this.drawText(

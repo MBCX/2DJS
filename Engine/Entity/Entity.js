@@ -128,7 +128,7 @@ export class Entity extends Engine {
          */
         this.entity_controls = {
             control_set: controls,
-            is_pressed: new Array(controls.length),
+            is_pressed: new Array(controls.length)
         };
         this.x = 0;
         this.y = 0;
@@ -580,8 +580,6 @@ export class Entity extends Engine {
      */
     setKeyPressed(e) {
         let index = this.findRequestedKeyIndex(e.key);
-        key_code = e.keyCode;
-
         if (this.entity_controls.control_set[index]) {
             this.entity_controls.is_pressed[index] = true;
             return;
@@ -613,11 +611,12 @@ export class Entity extends Engine {
      * @public
      */
     isKeyPressed(key) {
+        const index = this.findRequestedKeyIndex(key);
         console.assert(
             this.findRequestedKeyIndex(key) !== false,
             `The requested key: ${key} does not exits in the controls map for entity ${this.name}`
         );
-        return this.entity_controls.is_pressed[this.findRequestedKeyIndex(key)];
+        return this.entity_controls.is_pressed[index];
     }
 
     /** @private */
@@ -644,7 +643,7 @@ export class Entity extends Engine {
      * @param {Array} entity_controls Set of controls for controlling this entity.
      * @public
      */
-    static getInstance(name, width, height, entity_controls) {
+    static getInstance(name, entity_controls, width = this.window_width, height = this.window_height) {
         return (
             this.entity_instance ??
             (this.entity_instance = new this(

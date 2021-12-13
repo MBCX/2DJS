@@ -37,7 +37,7 @@ export class TestTextDrawing extends Entity {
             this.window_width / 2,
             64,
             "All text can be independently manipulated."
-        )
+        );
         
         this.drawText(
             this.move_text_x,

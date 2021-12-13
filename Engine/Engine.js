@@ -1,3 +1,4 @@
+import EngineAudio from "./Audio/EngineAudio.js";
 import EngineMath from "./Math/EngineMath.js";
 import EnginePhysics from "./Physics/EnginePhysics.js";
 import EngineUtils from "./utils/EngineUtils.js";
@@ -43,6 +44,8 @@ export class Engine {
         this.device_dpi = window.devicePixelRatio ?? 1;
         this.mouse_x = 0;
         this.mouse_y = 0;
+        this.has_user_clicked = false;
+        this.mouse_info = [];
 
         /** @readonly */
         this.engine_math = new EngineMath();
@@ -53,21 +56,22 @@ export class Engine {
         /** @readonly */
         this.engine_physics = new EnginePhysics();
 
+        /** @readonly */
+        this.engine_audio = new EngineAudio();
+        
         document.body.style.margin = 0;
         document.body.style.padding = 0;
         document.body.style.overflow = "hidden";
 
         // Set-up main game loop and other useful information.
         window.addEventListener("resize", this.updateResolution.bind(this));
-        window.addEventListener(
-            "mousemove",
-            this.updateMousePosition.bind(this)
-        );
+        window.addEventListener("mousemove", this.updateMousePosition.bind(this));
+        
         this.useCorrectWindowAnimationFrame(this.gameLoop.bind(this));
     }
 
     /** @public */
-    initialise(functionAfterInitialisation) {
+    whenIsReady(functionAfterInitialisation) {
         document.addEventListener(
             "DOMContentLoaded",
             () => {

@@ -7,6 +7,12 @@ export class MathTest extends Entity
     }
 
     /** @override */
+    entityInit()
+    {
+        this.random_ping = this.engine_math.randomNumberBetween(1000, 9999);
+    }
+
+    /** @override */
     entityDraw() {
         this.drawText(this.window_width / 2, 32, "Testing math functions in 2DJS");
         this.drawText(
@@ -23,6 +29,11 @@ export class MathTest extends Entity
             this.window_width / 2,
             128,
             `Rounded number of 10.5: ${this.engine_math.round(10.3)}`
+        );
+        this.drawText(
+            this.window_width / 2,
+            156,
+            `Random 4 ping number: ${this.random_ping}`
         );
     }
 }

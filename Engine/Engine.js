@@ -44,8 +44,6 @@ export class Engine {
         this.device_dpi = window.devicePixelRatio ?? 1;
         this.mouse_x = 0;
         this.mouse_y = 0;
-        this.has_user_clicked = false;
-        this.mouse_info = [];
 
         /** @readonly */
         this.engine_math = new EngineMath();

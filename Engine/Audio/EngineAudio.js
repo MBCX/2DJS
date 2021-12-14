@@ -4,7 +4,15 @@ import EngineUtils from "../utils/EngineUtils.js"
  * Keeps track of how many HTML5 audio elements
  * are active.
  */
-let audio_elements_list = [];
+const audio_elements_list = [];
+
+/**
+ * Keeps track of the permament audio sounds
+ * for the game. It's used by playAudioOnce method
+ * for knowing wich sounds not to play again.
+ */
+const permanent_audio_list = [];
+
 
 const utils = new EngineUtils();
 
@@ -16,8 +24,7 @@ export class EngineAudio {
      */
     playAudio(audio_file_src, loop = false, audio_options = {
         volume: 0.2
-    }) {
-        
+    }) {    
         // Play audio that's already in the list,
         // otherwise add it.
         for (let i = 0; audio_elements_list.length > i; ++i) {
@@ -37,6 +44,23 @@ export class EngineAudio {
         if (loop) {
             audio_element.addEventListener("ended", this.automaticallyLoop.bind(this, audio_element));
         } else {
+            audio_element.addEventListener("ended", this.removeAudioWhenFinished.bind(this, audio_element));
+        }
+    }
+
+    playAudioOnce(audio_file_src, audio_options = {
+        volume: 0.2
+    })
+    {
+        const audio_element = new Audio(audio_file_src);
+        audio_element.volume = audio_options.volume;
+        audio_element.loop = false;
+
+        if (permanent_audio_list.includes(audio_file_src)) {
+            return;
+        } else {
+            permanent_audio_list.push(audio_file_src);
+            audio_element.addEventListener("canplay", this.audioIsReady.bind(this, audio_element));
             audio_element.addEventListener("ended", this.removeAudioWhenFinished.bind(this, audio_element));
         }
     }

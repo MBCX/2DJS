@@ -33,6 +33,7 @@ export class TestTextDrawing extends Entity {
             32,
             "Text rendering in 2DJS"
         );
+        
         this.drawText(
             this.window_width / 2,
             64,

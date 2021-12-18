@@ -10,22 +10,20 @@ const MAGIC_NUMBER = 123456790;
 let number_seed = MAGIC_NUMBER;
 
 export class EngineMath {
-    PI = 3.14159265358979323846264338327950;
+    PI = 3.1415926535897932384626433832795;
     E = 2.718281828459045235360287471352662;
     INVPI = 0.31830988618379067153776752674502872;
 
     /**
-     * A custom implementation of Math.min() that returns the 
+     * A custom implementation of Math.min() that returns the
      * lowest number of length n.
      * @param  {...Number} n Array of numbers to determine the smallest of.
      */
-     min(...n) {
+    min(...n) {
         if (1 === n.length) {
             return n;
         } else if (2 === n.length) {
-            return (
-                (n[1] > n[0]) ? n[0] : n[1]
-            );
+            return n[1] > n[0] ? n[0] : n[1];
         } else {
             let smallest_number = n[0];
 
@@ -39,7 +37,7 @@ export class EngineMath {
     }
 
     /**
-     * A custom implementation of Math.max() that returns the 
+     * A custom implementation of Math.max() that returns the
      * biggest number of length n.
      * @param  {...Number} n Array of numbers to determine the biggest of.
      */
@@ -47,9 +45,7 @@ export class EngineMath {
         if (1 === n.length) {
             return n;
         } else if (2 === n.length) {
-            return (
-                (n[1] < n[0]) ? n[0] : n[1]
-            );
+            return n[1] < n[0] ? n[0] : n[1];
         } else {
             let biggest_number = n[0];
 
@@ -65,13 +61,13 @@ export class EngineMath {
     /**
      * Rounds the number up or down if the given number
      * (variable) has a decimal value above 0.5.
-     * i.e, round(1.2) -> 1, round(1.5) -> 2. 
+     * i.e, round(1.2) -> 1, round(1.5) -> 2.
      * @param {Number} variable
      * @public
      */
     round(variable) {
         const close_to_one = variable % 1;
-        return (close_to_one >= 0.5) ? variable + 0.5 : variable - close_to_one;
+        return 0.5 >= close_to_one ? variable + 0.5 : variable - close_to_one;
     }
 
     /**
@@ -87,7 +83,7 @@ export class EngineMath {
     }
 
     /**
-     * Removes the decimals of a variable, but 
+     * Removes the decimals of a variable, but
      * always returns it's next integer.
      * i.e, ceil(1.1) -> 2, ceil(2.001) -> 3.
      * @param {Number} variable
@@ -104,7 +100,7 @@ export class EngineMath {
      * @public
      */
     abs(variable) {
-        return (0 > variable) ? -variable : variable;
+        return 0 > variable ? -variable : variable;
     }
 
     /**
@@ -117,7 +113,7 @@ export class EngineMath {
         x /= 2 * this.PI;
         x -= this.floor(x);
 
-        if (x <= 0.5) {
+        if (0.5 >= x) {
             const t = 2 * x * (2 * x - 1);
             return (this.PI * t) / ((this.PI - 4) * t - 1);
         }
@@ -132,6 +128,62 @@ export class EngineMath {
      */
     cos(x) {
         return this.sin(x + 0.5 * this.PI);
+    }
+
+    /**
+     * Returns the square root of a given
+     * positive number.
+     * @param {Number} x
+     * @public
+     */
+    sqrt(x) {
+        if (0 > x) {
+            console.error(
+                "The number to find its square root cannot be negative."
+            );
+            return;
+        }
+
+        // TODO: There may be a better and more
+        // performant way to find it.
+        let result = 1;
+        for (let i = 1; x > i; ++i)
+        {
+            result = i * i;
+            if (x === result) return i;
+        }
+        return result;
+    }
+
+    /**
+     * Returns the result of multipling the given
+     * number twice.
+     * @param {Number} x;
+     * @public
+     */
+    sqr(x) {
+        return x * x;
+    }
+
+    /**
+     * Returns a number by multipling x by n times.
+     * @param {Number} x
+     * @param {Number} n
+     * @public
+     */
+    pow(x, n) {
+        if (0 > x) {
+            console.error(
+                "The number for finding its power cannot be negative."
+            );
+            return;
+        }
+        let result = x;
+
+        for (let i = 1; n > i; ++i) {
+            result *= x;
+        }
+        return result;
     }
 
     /**
@@ -206,7 +258,8 @@ export class EngineMath {
             this.sin(
                 ((Date.now() * 0.001 + duration * offset) / duration) *
                     (this.PI * 2)
-            ) * _difference
+            ) *
+                _difference
         );
     }
 
@@ -237,34 +290,33 @@ export class EngineMath {
      * @public
      */
     randomNumber(randomNumberLimit = 255) {
-        const main_entropy = Math.abs((
+        const main_entropy = (this.abs(
             Date.now() +
             performance.now() / performance.timeOrigin +
             this.PI
         ) - MAGIC_NUMBER);
 
-        const changeSeed = () =>
-        {
+        const changeSeed = () => {
             const date = new Date();
             const _current_date_seed = date.getSeconds();
-            const _current_performance = Math.floor(performance.now() / 1000);
+            const _current_performance = this.floor(performance.now() / 1000);
             const _combined_number = this.combined_numbers_between(
                 randomNumberLimit,
                 _current_date_seed,
                 _current_performance
             );
             const _noise = this.wave(
-                (date.getMinutes() === 0) ?
-                    1 * this.PI :
-                    date.getMinutes() * this.PI,
-              (_current_date_seed + main_entropy + _combined_number) %
-                randomNumberLimit,
-              main_entropy % randomNumberLimit
+                date.getMinutes() === 0
+                    ? 1 * this.PI
+                    : date.getMinutes() * this.PI,
+                (_current_date_seed + main_entropy + _combined_number) %
+                    randomNumberLimit,
+                main_entropy % randomNumberLimit
             );
-            number_seed = number_seed + ((_combined_number * _current_date_seed) / _noise);
+            number_seed = number_seed + (_combined_number * _current_date_seed) / _noise;
             return number_seed;
-        }
-        return Math.floor(main_entropy * changeSeed()) % randomNumberLimit;
+        };
+        return this.floor(main_entropy * changeSeed()) % randomNumberLimit;
     }
 
     /**
@@ -272,13 +324,12 @@ export class EngineMath {
      * @param {...Number} n Combination of numbers.
      * @public
      */
-    combined_numbers_between(...n)
-    {
+    combined_numbers_between(...n) {
         // p = previousValue
         // c = currentValue
         // n = newValue
         const numbers_combined = n.reduce((p, c, n) => {
-            return (p | c | n);
+            return p | c | n;
         });
         return numbers_combined;
     }

@@ -638,9 +638,9 @@ export class Entity extends Engine {
      * of a player class (for example) without having to create
      * a new class instance altogether.
      * @param {String} name Entity name
+     * @param {Array} entity_controls Set of controls for controlling this entity.
      * @param {Number} width How wide the entity is (usually relevant when drawing squares)
      * @param {Number} height How tall the entity is (usually relevant when drawing squares)
-     * @param {Array} entity_controls Set of controls for controlling this entity.
      * @public
      */
     static getInstance(name, entity_controls, width = this.window_width, height = this.window_height) {

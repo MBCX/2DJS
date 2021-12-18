@@ -28,12 +28,22 @@ export class MathTest extends Entity
         this.drawText(
             this.window_width / 2,
             128,
-            `Rounded number of 10.5: ${this.engine_math.round(10.3)}`
+            `Rounded number of 10.5: ${this.engine_math.round(10.5)}`
         );
         this.drawText(
             this.window_width / 2,
             156,
             `Random 4 ping number: ${this.random_ping}`
+        );
+        this.drawText(
+            this.window_width / 2,
+            180,
+            `The power of 5 by 3 is: ${this.engine_math.pow(5, 3)}`
+        );
+        this.drawText(
+            this.window_width / 2,
+            205,
+            `The square root of 9 is: ${this.engine_math.sqrt(10)}`
         );
     }
 }

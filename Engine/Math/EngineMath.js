@@ -11,6 +11,7 @@ let number_seed = MAGIC_NUMBER;
 
 export class EngineMath {
     PI = 3.1415926535897932384626433832795;
+    HALF_PI = this.PI / 2;
     E = 2.718281828459045235360287471352662;
     INVPI = 0.31830988618379067153776752674502872;
 
@@ -59,8 +60,40 @@ export class EngineMath {
     }
 
     /**
+     * Returns the middle centre number of a given
+     * (automatically) organised number list of size n.
+     * Example: (43, 12, 25, 19, 6) returns 19 as its middle centre number,
+     * because organised from smallest to largest (6, 12, 19, 25, 43) 19
+     * is the centre number.
+     * @param  {...Number} n List of numbers to find its centre number.
+     */
+    median(...n) {
+        if (1 === n.length) {
+            return n;
+        }
+        const organised_number_list = [];
+        let lowest_number = 0;
+
+        for (let i = n.length; 0 < i; --i)
+        {
+            lowest_number = (1 === n.length) ? n[0] : this.min(...n);
+            organised_number_list.push(lowest_number);
+            const index_of_found_lowest_number = n.indexOf(lowest_number);
+
+            if (1 === n.length) {
+                n.pop();
+            } else {
+                n.splice(index_of_found_lowest_number, 1);
+            }
+        }
+        // We round the index number down because it
+        // may result in decimal numbers. (i.e, 2.5).
+        return organised_number_list[this.floor(organised_number_list.length / 2)];
+    }
+
+    /**
      * Rounds the number up or down if the given number
-     * (variable) has a decimal value above 0.5.
+     * has a decimal value above 0.5.
      * i.e, round(1.2) -> 1, round(1.5) -> 2.
      * @param {Number} variable
      * @public
@@ -71,7 +104,7 @@ export class EngineMath {
     }
 
     /**
-     * Removes the decimasl of a variable, but
+     * Removes the decimals of a variable, but
      * always returns it's lowest integer.
      * i.e, floor(1.5) -> 1, floor(1.9) -> 1.
      * @param {Number} variable
@@ -122,12 +155,30 @@ export class EngineMath {
     }
 
     /**
+     * Returns 1, -1 or 0 if the value is positive, negative
+     * or 0.
+     * @param {Number} value
+     */
+    sign(value) {
+        return (0 <= value) ? 1 : (value < 0 ? -1 : 0);
+    }
+
+    /**
      * A somewhat fast aproximation of cos with enough precision.
      * @param {Number} x
      * @public
      */
     cos(x) {
         return this.sin(x + 0.5 * this.PI);
+    }
+
+    /**
+     * Retuns the number of power n based on
+     * Euler's number.
+     * @param {Number} n
+     */
+    exp(n) {
+        return this.pow(this.E, n);
     }
 
     /**
@@ -146,23 +197,41 @@ export class EngineMath {
 
         // TODO: There may be a better and more
         // performant way to find it.
-        let result = 1;
-        for (let i = 1; x > i; ++i)
-        {
-            result = i * i;
-            if (x === result) return i;
+        let result = this.sqr(x) / x;
+        if (Number.isInteger(result)) {
+            return result;
         }
-        return result;
+    }
+
+    /**
+     * REFERENCE: https://stackoverflow.com/questions/9799041/efficient-implementation-of-natural-logarithm-ln-and-exponentiation
+     * @param {Number} x
+     * @param {Number} elipsion The minimum precision. The lower, the less precise.
+     */
+    ln(x, elipsion = 2) {
+        let y_n = x - 1.0;
+        let y_n1 = y_n;
+
+        do {
+            y_n = y_n1;
+            y_n1 = y_n + 2 * (x - this.exp(y_n)) / (x + this.exp(y_n));
+        }
+        while (this.abs(y_n - y_n1) > elipsion);
+        return y_n1;
+    }
+
+    log(x, n, elipsion) {
+        return this.ln(x) / this.ln(n);
     }
 
     /**
      * Returns the result of multipling the given
      * number twice.
-     * @param {Number} x;
+     * @param {Number} n
      * @public
      */
-    sqr(x) {
-        return x * x;
+    sqr(n) {
+        return n * n;
     }
 
     /**
@@ -233,8 +302,8 @@ export class EngineMath {
      * @param {Boolean} autowrap Do you want automatically wrap between -360 and 360 degrees?
      * @public
      */
-    radToDeg(radian, autowrap) {
-        let result = (radian * 180) / this.PI;
+    radToDeg(radian, autowrap = false) {
+        let result = 180 / this.PI * radian;
         if (autowrap) {
             return this.wrap(result, -360, 360);
         }
@@ -283,13 +352,14 @@ export class EngineMath {
     }
 
     /**
-     * A custom pseudo-random number generator with better entropy.
+     * A custom pseudo-random single number generator with enough entropy.
      * Serves as a replacement of Math.random() using Date class
      * and performance global object.
      * @param {Number} randomNumberLimit Limit how far you want to generate numbers.
      * @public
      */
     randomNumber(randomNumberLimit = 255) {
+        const date = new Date();
         const main_entropy = (this.abs(
             Date.now() +
             performance.now() / performance.timeOrigin +
@@ -297,23 +367,21 @@ export class EngineMath {
         ) - MAGIC_NUMBER);
 
         const changeSeed = () => {
-            const date = new Date();
-            const _current_date_seed = date.getSeconds();
-            const _current_performance = this.floor(performance.now() / 1000);
-            const _combined_number = this.combined_numbers_between(
+            const current_date_seed = date.getSeconds();
+            const current_performance = this.floor(performance.now() / 1000);
+            const combined_number = this.combined_number_between(
                 randomNumberLimit,
-                _current_date_seed,
-                _current_performance
+                current_date_seed,
+                current_performance
             );
-            const _noise = this.wave(
-                date.getMinutes() === 0
+            const noise = this.wave(
+                0 === date.getMinutes()
                     ? 1 * this.PI
                     : date.getMinutes() * this.PI,
-                (_current_date_seed + main_entropy + _combined_number) %
-                    randomNumberLimit,
-                main_entropy % randomNumberLimit
+                (current_date_seed + combined_number),
+                main_entropy - combined_number + current_performance
             );
-            number_seed = number_seed + (_combined_number * _current_date_seed) / _noise;
+            number_seed = number_seed + (combined_number * current_date_seed) / noise;
             return number_seed;
         };
         return this.floor(main_entropy * changeSeed()) % randomNumberLimit;
@@ -324,7 +392,7 @@ export class EngineMath {
      * @param {...Number} n Combination of numbers.
      * @public
      */
-    combined_numbers_between(...n) {
+    combined_number_between(...n) {
         // p = previousValue
         // c = currentValue
         // n = newValue
@@ -342,13 +410,25 @@ export class EngineMath {
      * @public
      */
     randomNumberBetween(min, max) {
+        // Little fix for if the generated number
+        // is less than the min or greater than the
+        // maximum.
+        let result = 0;
+
         // This handles the edge case where the developer
-        // might have the min number be larger than the
-        // max number. i.e, (-10, 0)
+        // might have the minimum number be larger than the
+        // maximum. i.e, (-10, 0).
         if (min < max) {
-            return this.randomNumber(max - min) + min;
+            while (min > result) {
+                result = this.randomNumber(max - min + min);   
+            }
+        } else {
+            while (max > result) {
+                result = this.randomNumber(min + max - max);
+            }
         }
-        return this.randomNumber(min + max) + max;
+        
+        return result;
     }
 }
 

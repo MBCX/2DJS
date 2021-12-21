@@ -1,29 +1,41 @@
 import Entity from "../../../../Engine/Entity/Entity.js";
 
-export class MathTest extends Entity
-{
+export class MathTest extends Entity {
     constructor(name, width, height) {
         super(name, width, height);
     }
 
     /** @override */
-    entityInit()
-    {
+    entityInit() {
         this.random_ping = this.engine_math.randomNumberBetween(1000, 9999);
     }
 
     /** @override */
     entityDraw() {
-        this.drawText(this.window_width / 2, 32, "Testing math functions in 2DJS");
+        this.drawText(
+            this.window_width / 2,
+            32,
+            "Testing math functions in 2DJS"
+        );
         this.drawText(
             this.window_width / 2,
             68,
-            `Smallest number between -10, 0, 5 and 10: ${this.engine_math.min(-10, 0, 5, 10)}`
+            `Smallest number between -10, 0, 5 and 10: ${this.engine_math.min(
+                -10,
+                0,
+                5,
+                10
+            )}`
         );
         this.drawText(
             this.window_width / 2,
             96,
-            `Biggest number between -10, 0, 5 and 10: ${this.engine_math.max(-10, 0, 5, 10)}`
+            `Biggest number between -10, 0, 5 and 10: ${this.engine_math.max(
+                -10,
+                0,
+                5,
+                10
+            )}`
         );
         this.drawText(
             this.window_width / 2,
@@ -43,7 +55,17 @@ export class MathTest extends Entity
         this.drawText(
             this.window_width / 2,
             205,
-            `The square root of 9 is: ${this.engine_math.sqrt(10)}`
+            `The square root of 10 is: ${this.engine_math.sqrt(6)}`
+        );
+        this.drawText(
+            this.window_width / 2,
+            230,
+            `The natural logarithim of 20 is: ${this.engine_math.log(20)}`
+        );
+        this.drawText(
+            this.window_width / 2,
+            250,
+            `exp(3): ${this.engine_math.exp(3)}`
         );
     }
 }
